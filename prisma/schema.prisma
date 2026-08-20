@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  title       String
+  company     String
+  location    String?
+  datePosted  DateTime?
+  remote      Boolean   @default(false)
+  hybrid      Boolean   @default(false)
+  salary      String?
+  description String?
+  url         String    @unique
+  source      String // "linkedin" | "indeed" | "glassdoor" | "wazzuf"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([datePosted])
+  @@index([remote])
+  @@index([source])
+}
+
+model FreelanceProject {
+  id          String    @id @default(cuid())
+  title       String
+  budget      String?
+  deadline    DateTime?
+  skills      String[] // array of skill tags
+  description String?
+  url         String    @unique
+  source      String // "freelancer" | "nafezly" | "mostaql"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([deadline])
+  @@index([source])
+}
