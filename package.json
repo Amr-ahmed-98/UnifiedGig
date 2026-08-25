@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
 "scripts": {
-  "dev": "next dev",
-  "build": "prisma generate && next build",
-  "start": "next start",
-  "lint": "eslint",
-  "postinstall": "prisma generate",
-  "scrape:wuzzuf": "tsx src/scrapers/wuzzuf.ts",
-  "scrape:linkedin": "tsx src/scrapers/linkedin.ts",
-  "scrape:freelancer": "tsx src/scrapers/freelancer.ts"
-},
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "scrape:wuzzuf": "tsx src/scrapers/wuzzuf.ts",
+    "scrape:linkedin": "tsx src/scrapers/linkedin.ts",
+    "scrape:freelancer": "tsx src/scrapers/freelancer.ts",
+    "scrape:mostaql": "tsx src/scrapers/mostaql.ts"
+  },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@neondatabase/serverless": "^1.1.0",
