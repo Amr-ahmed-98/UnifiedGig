@@ -2,14 +2,15 @@
   "name": "job-freelance-platform",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "scrape:wuzzuf": "tsx src/scrapers/wuzzuf.ts",
-    "scrape:freelancer": "tsx src/scrapers/freelancer.ts"
-  },
+ "scripts": {
+  "dev": "next dev",
+  "build": "prisma generate && next build",
+  "start": "next start",
+  "lint": "eslint",
+  "postinstall": "prisma generate",
+  "scrape:wuzzuf": "tsx src/scrapers/wuzzuf.ts",
+  "scrape:freelancer": "tsx src/scrapers/freelancer.ts"
+},
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@neondatabase/serverless": "^1.1.0",
