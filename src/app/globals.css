@@ -1,26 +1,178 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-mono);
+  --font-display: var(--font-display);
+  --color-canvas: var(--ug-canvas);
+  --color-panel: var(--ug-panel);
+  --color-panel-2: var(--ug-panel-2);
+  --color-fg: var(--ug-fg);
+  --color-edge: var(--ug-edge);
+  --color-lime: #CCFF00;
+  --color-lime-soft: #E4FF7A;
+  --color-lime-deep: #9BC400;
+  --color-coral: #FF5C38;
+  --color-coral-soft: #FF8E75;
+  --color-aqua: #22E0D6;
+  --color-grape: #8B5CF6;
+  --color-ink: #0A0616;
+  --color-ink-800: #120A24;
+  --color-ink-700: #1A0F33;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --ug-canvas: #F6F2E9;
+  --ug-panel: #FFFFFF;
+  --ug-panel-2: #EFE8D8;
+  --ug-fg: #0A0616;
+  --ug-edge: #0A0616;
+}
+
+.dark {
+  --ug-canvas: #0A0616;
+  --ug-panel: #120A24;
+  --ug-panel-2: #1A0F33;
+  --ug-fg: #F6F2E9;
+  --ug-edge: #FFFFFF;
+}
+
+@layer base {
+  * {
+    @apply border-edge/10;
+  }
+
+  body {
+    @apply bg-canvas text-fg;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: #CCFF00;
+  color: #0A0616;
+}
+
+.ug-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.ug-grid {
+  background-image: radial-gradient(color-mix(in oklab, var(--ug-fg) 7%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+@keyframes ug-float {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(0, -28px, 0) scale(1.06);
+  }
+}
+
+@keyframes ug-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(34px, -20px, 0) rotate(8deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes ug-spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ug-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ug-float {
+  animation: ug-float 9s ease-in-out infinite;
+  will-change: transform;
+}
+
+.ug-drift {
+  animation: ug-drift 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+.ug-spin-slow {
+  animation: ug-spin-slow 26s linear infinite;
+}
+
+.ug-marquee {
+  animation: ug-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--ug-panel);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--ug-panel-2);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ug-panel-2) var(--ug-panel);
+}
+
+@media (pointer: fine) {
+  body {
+    cursor: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .ug-float,
+  .ug-drift,
+  .ug-spin-slow,
+  .ug-marquee {
+    animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
