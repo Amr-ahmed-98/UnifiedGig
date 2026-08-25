@@ -52,6 +52,7 @@ export default function JobsPage() {
     const params = new URLSearchParams()
     if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim())
     if (debouncedLocation.trim()) params.set('location', debouncedLocation.trim())
+    if (activeSources.length) params.set('source', activeSources.join(','))
     params.set('take', String(PAGE_SIZE))
     params.set('skip', String(skip))
     return params
@@ -84,7 +85,7 @@ export default function JobsPage() {
     return () => {
       cancelled = true
     }
-  }, [debouncedQuery, debouncedLocation])
+  }, [debouncedQuery, debouncedLocation, activeSources])
 
   const loadMore = () => {
     setLoadingMore(true)
@@ -107,10 +108,9 @@ export default function JobsPage() {
   const results = useMemo(() => {
     return jobs.filter((j) => {
       if (modes.length && !modes.includes(workModeOf(j))) return false
-      if (activeSources.length && !activeSources.includes(j.source)) return false
       return true
     })
-  }, [jobs, modes, activeSources])
+  }, [jobs, modes])
 
   const reset = () => {
     setQuery('')

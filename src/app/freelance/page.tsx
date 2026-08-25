@@ -40,6 +40,7 @@ export default function FreelancePage() {
   const buildParams = (skip: number) => {
     const params = new URLSearchParams()
     if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim())
+    if (activeSources.length) params.set('source', activeSources.join(','))
     params.set('take', String(PAGE_SIZE))
     params.set('skip', String(skip))
     return params
@@ -69,7 +70,7 @@ export default function FreelancePage() {
     return () => {
       cancelled = true
     }
-  }, [debouncedQuery])
+  }, [debouncedQuery, activeSources])
 
   const loadMore = () => {
     setLoadingMore(true)
@@ -97,10 +98,9 @@ export default function FreelancePage() {
   const results = useMemo(() => {
     return projects.filter((p) => {
       if (skills.length && !p.skills.some((s) => skills.includes(s))) return false
-      if (activeSources.length && !activeSources.includes(p.source)) return false
       return true
     })
-  }, [projects, skills, activeSources])
+  }, [projects, skills])
 
   const reset = () => {
     setQuery('')

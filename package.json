@@ -2,13 +2,14 @@
   "name": "job-freelance-platform",
   "version": "0.1.0",
   "private": true,
- "scripts": {
+"scripts": {
   "dev": "next dev",
   "build": "prisma generate && next build",
   "start": "next start",
   "lint": "eslint",
   "postinstall": "prisma generate",
   "scrape:wuzzuf": "tsx src/scrapers/wuzzuf.ts",
+  "scrape:linkedin": "tsx src/scrapers/linkedin.ts",
   "scrape:freelancer": "tsx src/scrapers/freelancer.ts"
 },
   "dependencies": {
