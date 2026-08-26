@@ -2,7 +2,7 @@
   "name": "job-freelance-platform",
   "version": "0.1.0",
   "private": true,
-"scripts": {
+  "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
@@ -11,7 +11,8 @@
     "scrape:wuzzuf": "tsx src/scrapers/wuzzuf.ts",
     "scrape:linkedin": "tsx src/scrapers/linkedin.ts",
     "scrape:freelancer": "tsx src/scrapers/freelancer.ts",
-    "scrape:mostaql": "tsx src/scrapers/mostaql.ts"
+    "scrape:mostaql": "tsx src/scrapers/mostaql.ts",
+    "scrape:indeed": "tsx src/scrapers/indeed.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -27,6 +28,7 @@
     "motion": "^13.1.1",
     "next": "16.3.1",
     "next-themes": "^0.4.6",
+    "patchright": "^1.62.1",
     "pg": "^8.13.1",
     "playwright": "^1.62.1",
     "react": "19.2.8",
