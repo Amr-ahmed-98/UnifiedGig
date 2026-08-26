@@ -42,27 +42,48 @@ function isCloudflareChallenge(title: string, html: string): boolean {
 
 async function handleChallenge(page: import('patchright').Page): Promise<boolean> {
     const startTime = Date.now()
-    while (Date.now() - startTime < 15000) {
+    let clicked = false
+
+    while (Date.now() - startTime < 25000) {
         const title = await page.title()
         if (!/Just a moment|Security Check|Blocked/i.test(title)) {
             return true
         }
 
-        // Attempt to find and click Turnstile checkbox across frames
-        for (const frame of page.frames()) {
-            try {
-                const box = await frame.$('input[type="checkbox"], .ctp-checkbox-label, #challenge-stage, .mark')
-                if (box && await box.isVisible()) {
-                    console.log('  Turnstile checkbox detected, clicking...')
-                    await box.click({ delay: 100 })
-                    await page.waitForTimeout(3000)
-                    break
+        if (!clicked) {
+            const iframes = await page.$$('iframe')
+            for (const iframe of iframes) {
+                const src = (await iframe.getAttribute('src').catch(() => '')) || ''
+                const titleAttr = (await iframe.getAttribute('title').catch(() => '')) || ''
+                if (
+                    src.includes('cloudflare') ||
+                    src.includes('turnstile') ||
+                    src.includes('challenge') ||
+                    titleAttr.includes('Cloudflare')
+                ) {
+                    const box = await iframe.boundingBox()
+                    if (box && box.width > 0 && box.height > 0) {
+                        console.log('  Turnstile iframe detected, dispatching click...')
+                        const targetX = box.x + Math.min(35, box.width / 4)
+                        const targetY = box.y + box.height / 2
+
+                        await page.mouse.move(targetX - 25, targetY - 20, { steps: 8 })
+                        await page.waitForTimeout(200)
+                        await page.mouse.move(targetX, targetY, { steps: 8 })
+                        await page.waitForTimeout(300)
+                        await page.mouse.down()
+                        await page.waitForTimeout(120)
+                        await page.mouse.up()
+                        clicked = true
+                        await page.waitForTimeout(3000)
+                        break
+                    }
                 }
-            } catch {}
+            }
         }
 
-        await page.mouse.move(100 + Math.random() * 200, 100 + Math.random() * 200)
-        await page.waitForTimeout(1500)
+        await page.mouse.move(100 + Math.random() * 300, 200 + Math.random() * 300, { steps: 5 })
+        await page.waitForTimeout(2000)
     }
 
     const finalTitle = await page.title()
