@@ -214,9 +214,24 @@ async function saveJobs(jobs: ScrapedJob[]) {
 export async function runScrape() {
     console.log(`[${new Date().toISOString()}] Starting Indeed scrape (Egypt, last ${CUTOFF_DAYS} days)...`)
     const isCI = Boolean(process.env.CI)
+
+    const proxyServer = process.env.PROXY_SERVER || process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+    const proxy = proxyServer
+        ? {
+            server: proxyServer,
+            ...(process.env.PROXY_USERNAME && { username: process.env.PROXY_USERNAME }),
+            ...(process.env.PROXY_PASSWORD && { password: process.env.PROXY_PASSWORD }),
+        }
+        : undefined
+
+    if (proxy) {
+        console.log(`Using proxy: ${proxyServer}`)
+    }
+
     const browser = await chromium.launch({
         headless: !isCI, // under xvfb on CI, headful mode ensures real display/GPU pipeline
         args: ['--disable-dev-shm-usage', '--no-sandbox', '--window-size=1920,1080'],
+        ...(proxy && { proxy }),
     })
     const cutoff = new Date(Date.now() - CUTOFF_DAYS * 24 * 60 * 60 * 1000)
 
