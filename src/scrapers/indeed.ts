@@ -30,12 +30,43 @@ const BASE_URL = (title: string) =>
 const MAX_PAGES = 5
 const CUTOFF_DAYS = 3
 const PAGE_LOAD_RETRIES = 3
-const DESKTOP_UA =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
+const IS_LINUX = process.platform === 'linux'
+const DESKTOP_UA = IS_LINUX
+    ? 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
+    : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
 
 function isCloudflareChallenge(title: string, html: string): boolean {
-    if (/Just a moment|Blocked - Indeed/i.test(title)) return true
+    if (/Just a moment|Blocked - Indeed|Security Check/i.test(title)) return true
     return /cf-browser-verification|challenge-error-title|id="cf-challenge/i.test(html)
+}
+
+async function handleChallenge(page: import('patchright').Page): Promise<boolean> {
+    const startTime = Date.now()
+    while (Date.now() - startTime < 15000) {
+        const title = await page.title()
+        if (!/Just a moment|Security Check|Blocked/i.test(title)) {
+            return true
+        }
+
+        // Attempt to find and click Turnstile checkbox across frames
+        for (const frame of page.frames()) {
+            try {
+                const box = await frame.$('input[type="checkbox"], .ctp-checkbox-label, #challenge-stage, .mark')
+                if (box && await box.isVisible()) {
+                    console.log('  Turnstile checkbox detected, clicking...')
+                    await box.click({ delay: 100 })
+                    await page.waitForTimeout(3000)
+                    break
+                }
+            } catch {}
+        }
+
+        await page.mouse.move(100 + Math.random() * 200, 100 + Math.random() * 200)
+        await page.waitForTimeout(1500)
+    }
+
+    const finalTitle = await page.title()
+    return !/Just a moment|Security Check|Blocked/i.test(finalTitle)
 }
 
 function parseJobs(html: string): { jobs: ScrapedJob[]; hasNextPage: boolean } {
@@ -82,14 +113,12 @@ async function scrapePage(
     const url = `${BASE_URL(title)}&start=${start}`
 
     try {
-        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 })
-        const status = response?.status()
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 })
 
         let pageTitle = await page.title()
         if (/Just a moment|Security Check/i.test(pageTitle)) {
-            console.log(`  Cloudflare verification detected ("${pageTitle}"), waiting to resolve...`)
-            await page.waitForFunction(() => !/Just a moment|Security Check/i.test(document.title), { timeout: 12000 }).catch(() => {})
-            await page.waitForTimeout(2000)
+            console.log(`  Cloudflare verification detected ("${pageTitle}"), resolving...`)
+            await handleChallenge(page)
             pageTitle = await page.title()
         }
 
@@ -102,13 +131,18 @@ async function scrapePage(
         await page.waitForTimeout(1500)
 
         const html = await page.content()
+        const { jobs, hasNextPage } = parseJobs(html)
 
-        if (status === 403 && isCloudflareChallenge(pageTitle, html)) {
+        if (jobs.length > 0) {
+            return { jobs, hasNextPage }
+        }
+
+        if (isCloudflareChallenge(pageTitle, html)) {
             console.log(`  page start=${start} hit a Cloudflare challenge page, not "0 jobs" - treating as failure.`)
             throw new Error('cloudflare_challenge')
         }
 
-        return parseJobs(html)
+        return { jobs, hasNextPage }
     } catch (err) {
         if (attempt < PAGE_LOAD_RETRIES) {
             console.log(`  page start=${start} failed (attempt ${attempt}), retrying...`)
@@ -158,9 +192,10 @@ async function saveJobs(jobs: ScrapedJob[]) {
 
 export async function runScrape() {
     console.log(`[${new Date().toISOString()}] Starting Indeed scrape (Egypt, last ${CUTOFF_DAYS} days)...`)
+    const isCI = Boolean(process.env.CI)
     const browser = await chromium.launch({
-        headless: true,
-        args: ['--disable-dev-shm-usage', '--no-sandbox'],
+        headless: !isCI, // under xvfb on CI, headful mode ensures real display/GPU pipeline
+        args: ['--disable-dev-shm-usage', '--no-sandbox', '--window-size=1920,1080'],
     })
     const cutoff = new Date(Date.now() - CUTOFF_DAYS * 24 * 60 * 60 * 1000)
 

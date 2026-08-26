@@ -16,6 +16,6 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx patchright install --with-deps chromium
-      - run: npm run scrape:indeed
+      - run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npm run scrape:indeed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
