@@ -76,6 +76,12 @@ async function scrapeRole(browser: import('patchright').Browser, role: string): 
             await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
             await page.waitForTimeout(3000)
             const html = await page.content()
+            // TEMP DEBUG — remove once diagnosed
+            console.log(`  [DEBUG] page title: ${await page.title()}`)
+            console.log(`  [DEBUG] final URL: ${page.url()}`)
+            console.log(`  [DEBUG] html length: ${html.length}`)
+            console.log(`  [DEBUG] contains "jobListing": ${html.includes('jobListing')}`)
+            console.log(`  [DEBUG] first 500 chars: ${html.slice(0, 500)}`)
             const jobs = parseJobs(html)
 
             if (jobs.length === 0) break
