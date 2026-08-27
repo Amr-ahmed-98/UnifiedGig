@@ -36,7 +36,7 @@ const DESKTOP_UA = IS_LINUX
     : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
 
 function isCloudflareChallenge(title: string, html: string): boolean {
-    if (/Just a moment|Blocked - Indeed|Security Check|Additional Verification Required/i.test(title)) return true
+    if (/Just a moment|Blocked - Indeed|Security Check|Additional Verification Required|Authenticating/i.test(title)) return true
     return /cf-browser-verification|challenge-error-title|id="cf-challenge|Verify you are human/i.test(html)
 }
 
@@ -44,9 +44,9 @@ async function handleChallenge(page: import('patchright').Page): Promise<boolean
     const startTime = Date.now()
     let clicked = false
 
-    while (Date.now() - startTime < 25000) {
+    while (Date.now() - startTime < 40000) {
         const title = await page.title()
-        if (!/Just a moment|Security Check|Blocked|Additional Verification Required/i.test(title)) {
+        if (!/Just a moment|Security Check|Blocked|Additional Verification Required|Authenticating/i.test(title)) {
             return true
         }
 
@@ -87,7 +87,7 @@ async function handleChallenge(page: import('patchright').Page): Promise<boolean
     }
 
     const finalTitle = await page.title()
-    return !/Just a moment|Security Check|Blocked|Additional Verification Required/i.test(finalTitle)
+    return !/Just a moment|Security Check|Blocked|Additional Verification Required|Authenticating/i.test(finalTitle)
 }
 
 function parseJobs(html: string): { jobs: ScrapedJob[]; hasNextPage: boolean } {
@@ -137,7 +137,7 @@ async function scrapePage(
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
 
         let pageTitle = await page.title()
-        if (/Just a moment|Security Check|Additional Verification Required/i.test(pageTitle)) {
+        if (/Just a moment|Security Check|Additional Verification Required|Authenticating/i.test(pageTitle)) {
             console.log(`  Cloudflare verification detected ("${pageTitle}"), resolving...`)
             await handleChallenge(page)
             pageTitle = await page.title()
