@@ -12,7 +12,8 @@
     "scrape:linkedin": "tsx src/scrapers/linkedin.ts",
     "scrape:freelancer": "tsx src/scrapers/freelancer.ts",
     "scrape:mostaql": "tsx src/scrapers/mostaql.ts",
-    "scrape:indeed": "tsx src/scrapers/indeed.ts"
+    "scrape:indeed": "tsx src/scrapers/indeed.ts",
+    "scrape:glassdoor": "tsx src/scrapers/glassdoor.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
