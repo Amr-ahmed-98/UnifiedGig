@@ -134,7 +134,7 @@ async function scrapePage(
     const url = `${BASE_URL(title)}&start=${start}`
 
     try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 })
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
 
         let pageTitle = await page.title()
         if (/Just a moment|Security Check/i.test(pageTitle)) {
@@ -143,11 +143,11 @@ async function scrapePage(
             pageTitle = await page.title()
         }
 
+        let sawJobSelector = true
         await page
-            .waitForSelector('h3.jobTitle a[data-jk]', { timeout: 10000 })
+            .waitForSelector('h3.jobTitle a[data-jk]', { timeout: 20000 })
             .catch(() => {
-                // page may legitimately have 0 jobs (past last page) - let
-                // parsing below decide, don't throw here
+                sawJobSelector = false
             })
         await page.waitForTimeout(1500)
 
@@ -163,14 +163,25 @@ async function scrapePage(
             throw new Error('cloudflare_challenge')
         }
 
+        // selector timed out AND parse found 0 cards - can't tell "legit last
+        // page" from "slow proxy, cards never hydrated" apart. Treat as
+        // failure so it retries instead of silently reporting 0 jobs.
+        if (!sawJobSelector) {
+            console.log(`  page start=${start}: no job selector after 20s and 0 cards parsed (title="${pageTitle}", html length=${html.length}) - treating as load failure, not "0 jobs".`)
+            throw new Error('selector_timeout_zero_jobs')
+        }
+
         return { jobs, hasNextPage }
     } catch (err) {
         if (attempt < PAGE_LOAD_RETRIES) {
-            console.log(`  page start=${start} failed (attempt ${attempt}), retrying...`)
+            console.log(`  page start=${start} failed (attempt ${attempt}): ${err instanceof Error ? err.message : err}, retrying...`)
             await new Promise((r) => setTimeout(r, 4000))
             return scrapePage(page, title, start, attempt + 1)
         }
-        console.log(`  page start=${start} failed after ${attempt} attempts, stopping pagination.`)
+        console.log(`  page start=${start} failed after ${attempt} attempts: ${err instanceof Error ? err.message : err}, stopping pagination.`)
+        if (process.env.CI) {
+            await page.screenshot({ path: `/tmp/indeed-fail-${title.replace(/\s+/g, '_')}-${start}.png` }).catch(() => { })
+        }
         return { jobs: [], hasNextPage: false }
     }
 }
@@ -280,8 +291,8 @@ export async function runScrape() {
                     await new Promise((r) => setTimeout(r, 2500))
                 }
             } finally {
-                await page.close().catch(() => {})
-                await context.close().catch(() => {})
+                await page.close().catch(() => { })
+                await context.close().catch(() => { })
             }
 
             await new Promise((r) => setTimeout(r, 2000))
@@ -299,7 +310,7 @@ export async function runScrape() {
             console.log(`Done. ${totalCreated} new, ${totalUpdated} updated, ${removed.count} removed (older than ${CUTOFF_DAYS}d).`)
         }
     } finally {
-        await browser.close().catch(() => {})
+        await browser.close().catch(() => { })
     }
 }
 
