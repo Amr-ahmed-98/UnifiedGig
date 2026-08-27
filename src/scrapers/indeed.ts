@@ -42,15 +42,34 @@ function isCloudflareChallenge(title: string, html: string): boolean {
 
 async function handleChallenge(page: import('patchright').Page): Promise<boolean> {
     const startTime = Date.now()
-    let clicked = false
+    let lastClickAt = 0
 
-    while (Date.now() - startTime < 40000) {
+    // Wait initial 4s to allow non-interactive / managed Cloudflare challenges to auto-solve
+    await page.waitForTimeout(4000)
+
+    while (Date.now() - startTime < 35000) {
         const title = await page.title()
         if (!/Just a moment|Security Check|Blocked|Additional Verification Required|Authenticating/i.test(title)) {
             return true
         }
 
-        if (!clicked) {
+        if (Date.now() - lastClickAt > 7000) {
+            try {
+                // Try clicking inside the Turnstile iframe using frameLocator
+                const turnstileFrame = page.frameLocator('iframe[src*="cloudflare"], iframe[src*="turnstile"], iframe[src*="challenge"], iframe[title*="Cloudflare"], iframe[title*="Turnstile"]').first()
+                const checkbox = turnstileFrame.locator('input[type="checkbox"], .ctp-checkbox-label, #challenge-stage, body')
+                
+                if (await checkbox.isVisible({ timeout: 1500 }).catch(() => false)) {
+                    console.log('  Turnstile interactive element located, clicking...')
+                    await checkbox.click({ delay: 100 }).catch(() => {})
+                    lastClickAt = Date.now()
+                    await page.waitForTimeout(4000)
+                    continue
+                }
+            } catch {
+                // Fallback to bounding box click if frameLocator is blocked
+            }
+
             const iframes = await page.$$('iframe')
             for (const iframe of iframes) {
                 const src = (await iframe.getAttribute('src').catch(() => '')) || ''
@@ -67,22 +86,22 @@ async function handleChallenge(page: import('patchright').Page): Promise<boolean
                         const targetX = box.x + Math.min(35, box.width / 4)
                         const targetY = box.y + box.height / 2
 
-                        await page.mouse.move(targetX - 25, targetY - 20, { steps: 8 })
+                        await page.mouse.move(targetX - 20, targetY - 15, { steps: 10 })
                         await page.waitForTimeout(200)
-                        await page.mouse.move(targetX, targetY, { steps: 8 })
+                        await page.mouse.move(targetX, targetY, { steps: 5 })
                         await page.waitForTimeout(300)
                         await page.mouse.down()
-                        await page.waitForTimeout(120)
+                        await page.waitForTimeout(100)
                         await page.mouse.up()
-                        clicked = true
-                        await page.waitForTimeout(3000)
+                        lastClickAt = Date.now()
+                        await page.waitForTimeout(4000)
                         break
                     }
                 }
             }
         }
 
-        await page.mouse.move(100 + Math.random() * 300, 200 + Math.random() * 300, { steps: 5 })
+        await page.mouse.move(150 + Math.random() * 200, 250 + Math.random() * 200, { steps: 5 })
         await page.waitForTimeout(2000)
     }
 
@@ -98,18 +117,11 @@ function parseJobs(html: string): { jobs: ScrapedJob[]; hasNextPage: boolean } {
         const linkEl = $(el)
         const jobId = linkEl.attr('data-jk') || ''
         const title = linkEl.find('span').first().text().trim() || linkEl.text().trim()
-        // rc/clk href carries a per-session tracking token that changes every
-        // search - using it as the DB unique key would create a duplicate row
-        // for the same job on every run. jk is stable, use that instead.
         const fullUrl = jobId ? `https://eg.indeed.com/viewjob?jk=${jobId}` : ''
 
         const cardRoot = linkEl.closest('li')
         const company = cardRoot.find('[data-testid="company-name"]').first().text().trim() || 'Confidential'
         const location = cardRoot.find('[data-testid="text-location"]').first().text().trim()
-
-        // salary already sits in the list card (salary-snippet-container) -
-        // no need for a second page visit per job, which was hammering the
-        // site with 2x requests and likely what triggered the Cloudflare wall.
         const salary =
             cardRoot.find('[data-testid*="salary-snippet-container"] span').first().text().trim() || null
 
@@ -145,11 +157,11 @@ async function scrapePage(
 
         let sawJobSelector = true
         await page
-            .waitForSelector('h3.jobTitle a[data-jk]', { timeout: 20000 })
+            .waitForSelector('h3.jobTitle a[data-jk], [data-testid*="no-results"], div[class*="NoResult"], main#main, #mosaic-provider-jobcards', { timeout: 12000 })
             .catch(() => {
                 sawJobSelector = false
             })
-        await page.waitForTimeout(1500)
+        await page.waitForTimeout(1000)
 
         const html = await page.content()
         const { jobs, hasNextPage } = parseJobs(html)
@@ -163,11 +175,14 @@ async function scrapePage(
             throw new Error('cloudflare_challenge')
         }
 
-        // selector timed out AND parse found 0 cards - can't tell "legit last
-        // page" from "slow proxy, cards never hydrated" apart. Treat as
-        // failure so it retries instead of silently reporting 0 jobs.
+        const isIndeedPage = /Indeed/i.test(pageTitle) || /did not match any jobs|No jobs found|jobsearch/i.test(html)
+        if (isIndeedPage) {
+            // Legitimately 0 matching jobs on Indeed for this query
+            return { jobs: [], hasNextPage: false }
+        }
+
         if (!sawJobSelector) {
-            console.log(`  page start=${start}: no job selector after 20s and 0 cards parsed (title="${pageTitle}", html length=${html.length}) - treating as load failure, not "0 jobs".`)
+            console.log(`  page start=${start}: no job selector and 0 cards parsed (title="${pageTitle}", html length=${html.length}) - treating as load failure, not "0 jobs".`)
             throw new Error('selector_timeout_zero_jobs')
         }
 
@@ -175,7 +190,7 @@ async function scrapePage(
     } catch (err) {
         if (attempt < PAGE_LOAD_RETRIES) {
             console.log(`  page start=${start} failed (attempt ${attempt}): ${err instanceof Error ? err.message : err}, retrying...`)
-            await new Promise((r) => setTimeout(r, 4000))
+            await new Promise((r) => setTimeout(r, 4000 + Math.random() * 2000))
             return scrapePage(page, title, start, attempt + 1)
         }
         console.log(`  page start=${start} failed after ${attempt} attempts: ${err instanceof Error ? err.message : err}, stopping pagination.`)
@@ -225,6 +240,7 @@ async function saveJobs(jobs: ScrapedJob[]) {
 export async function runScrape() {
     console.log(`[${new Date().toISOString()}] Starting Indeed scrape (Egypt, last ${CUTOFF_DAYS} days)...`)
     const isCI = Boolean(process.env.CI)
+    const isHeadless = process.env.HEADLESS !== undefined ? process.env.HEADLESS === 'true' : isCI
 
     const proxyServer = process.env.PROXY_SERVER || process.env.HTTPS_PROXY || process.env.HTTP_PROXY
     const proxy = proxyServer
@@ -240,27 +256,44 @@ export async function runScrape() {
     }
 
     const browser = await chromium.launch({
-        headless: !isCI, // under xvfb on CI, headful mode ensures real display/GPU pipeline
-        args: ['--disable-dev-shm-usage', '--no-sandbox', '--window-size=1920,1080'],
+        headless: isHeadless,
+        args: [
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--window-size=1920,1080',
+            '--disable-blink-features=AutomationControlled',
+        ],
         ...(proxy && { proxy }),
     })
     const cutoff = new Date(Date.now() - CUTOFF_DAYS * 24 * 60 * 60 * 1000)
 
     let totalCreated = 0
     let totalUpdated = 0
-    const seenJobIds = new Set<string>() // same job shows up under multiple titles, skip dupes within this run
+    const seenJobIds = new Set<string>()
+
+    // Reuse a single BrowserContext across all search titles to keep cf_clearance & session cookies
+    const context = await browser.newContext({
+        userAgent: DESKTOP_UA,
+        viewport: { width: 1920, height: 1080 },
+        deviceScaleFactor: 1,
+        locale: 'en-US',
+        extraHTTPHeaders: {
+            'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+            'Sec-Ch-Ua': '"Chromium";v="133", "Not(A:Brand";v="99", "Google Chrome";v="133"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': IS_LINUX ? '"Linux"' : '"Windows"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1',
+        },
+    })
+    const page = await context.newPage()
 
     try {
         for (const title of SEARCH_TITLES) {
             console.log(`--- Searching "${title}" ---`)
-            const context = await browser.newContext({
-                userAgent: DESKTOP_UA,
-                viewport: { width: 1920, height: 1080 },
-                deviceScaleFactor: 1,
-                locale: 'en-US',
-            })
-            const page = await context.newPage()
-
             try {
                 for (let p = 0; p < MAX_PAGES; p++) {
                     const start = p * 10
@@ -288,18 +321,17 @@ export async function runScrape() {
                         break
                     }
 
-                    await new Promise((r) => setTimeout(r, 2500))
+                    // Human-like delay between pagination
+                    await new Promise((r) => setTimeout(r, 3000 + Math.random() * 2000))
                 }
-            } finally {
-                await page.close().catch(() => { })
-                await context.close().catch(() => { })
+            } catch (titleErr) {
+                console.error(`Error searching title "${title}":`, titleErr)
             }
 
-            await new Promise((r) => setTimeout(r, 2000))
+            // Human-like delay between different search titles
+            await new Promise((r) => setTimeout(r, 3500 + Math.random() * 2500))
         }
 
-        // fromage=3 already limits what we fetch to last 3 days - this just
-        // sweeps stale rows a prior run inserted that have since aged out.
         const removed = await prisma.job.deleteMany({
             where: { source: 'indeed', createdAt: { lt: cutoff } },
         })
@@ -310,6 +342,8 @@ export async function runScrape() {
             console.log(`Done. ${totalCreated} new, ${totalUpdated} updated, ${removed.count} removed (older than ${CUTOFF_DAYS}d).`)
         }
     } finally {
+        await page.close().catch(() => { })
+        await context.close().catch(() => { })
         await browser.close().catch(() => { })
     }
 }
