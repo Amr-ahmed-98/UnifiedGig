@@ -14,6 +14,9 @@ interface ScrapedProject {
 
 const BASE_URL = 'https://www.freelancer.com/jobs/'
 const MAX_PAGES = 5
+const CUTOFF_DAYS = 3
+// freelancer.com list page gives no posted-date or open/closed flag — only bid deadline.
+// Proxy: still-listed = open, first-seen (createdAt) = posted date approx.
 
 function parseDeadline(raw: string): Date | null {
     const m = raw.match(/(\d+)\s*(hour|day|week|month)s?\s*left/i)
@@ -74,19 +77,13 @@ function parseProjects(html: string): ScrapedProject[] {
     return projects
 }
 
-async function scrapePage(browser: import('playwright').Browser, pageNum: number): Promise<ScrapedProject[]> {
-    const page = await browser.newPage({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
-    })
-
+async function scrapePage(page: import('playwright').Page, pageNum: number): Promise<ScrapedProject[]> {
     const url = pageNum === 0 ? BASE_URL : `${BASE_URL}${pageNum + 1}/`
 
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
-    await page.waitForTimeout(3000)
+    await page.waitForTimeout(2000)
 
     const html = await page.content()
-    await page.close()
-
     return parseProjects(html)
 }
 
@@ -104,6 +101,7 @@ async function saveProjects(projects: ScrapedProject[]) {
                 description: p.description,
                 budget: p.budget,
                 skills: p.skills,
+                isOpen: true,
                 ...(p.deadline && { deadline: p.deadline }),
             },
             create: {
@@ -112,6 +110,8 @@ async function saveProjects(projects: ScrapedProject[]) {
                 budget: p.budget,
                 skills: p.skills,
                 deadline: p.deadline,
+                isOpen: true,
+                postedAt: null,
                 url: p.url,
                 source: 'freelancer',
             },
@@ -127,11 +127,17 @@ async function saveProjects(projects: ScrapedProject[]) {
 async function main() {
     console.log(`[${new Date().toISOString()}] Starting Freelancer scrape...`)
     const browser = await chromium.launch({ headless: true })
+    const context = await browser.newContext({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+    })
+    const page = await context.newPage()
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - CUTOFF_DAYS)
 
     try {
         for (let p = 0; p < MAX_PAGES; p++) {
             console.log(`Scraping page ${p + 1}...`)
-            const projects = await scrapePage(browser, p)
+            const projects = await scrapePage(page, p)
 
             if (projects.length === 0) {
                 console.log('No projects found, stopping.')
@@ -141,9 +147,24 @@ async function main() {
             const { created, updated } = await saveProjects(projects)
             console.log(`Page ${p + 1}: ${projects.length} found (${created} new, ${updated} updated)`)
 
-            await new Promise((r) => setTimeout(r, 2000))
+            await new Promise((r) => setTimeout(r, 1500))
         }
+
+        // Cleanup only truly stale or expired projects (deadline in the past or createdAt older than CUTOFF_DAYS)
+        const now = new Date()
+        const { count: removed } = await prisma.freelanceProject.deleteMany({
+            where: {
+                source: 'freelancer',
+                OR: [
+                    { deadline: { lt: now } },
+                    { createdAt: { lt: cutoff } },
+                ],
+            },
+        })
+        console.log(`Cleaned up ${removed} expired/stale freelancer rows from db`)
     } finally {
+        await page.close()
+        await context.close()
         await browser.close()
         await prisma.$disconnect()
     }

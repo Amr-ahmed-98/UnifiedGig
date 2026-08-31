@@ -35,9 +35,13 @@ model FreelanceProject {
   description String?
   url         String    @unique
   source      String // "freelancer" | "nafezly" | "mostaql"
+  postedAt    DateTime? // when project posted on source site (null = unknown, e.g. freelancer.com gives no posted date)
+  isOpen      Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([deadline])
   @@index([source])
+  @@index([postedAt])
+  @@index([isOpen])
 }

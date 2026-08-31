@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   title: "UnifiedGig",
   description: "Every job and freelance gig, one feed.",
 };
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning className={`${display.variable} ${mono.variable} h-full antialiased`}>
