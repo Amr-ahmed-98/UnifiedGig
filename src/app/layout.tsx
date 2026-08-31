@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   title: "UnifiedGig",
   description: "Every job and freelance gig, one feed.",
 };
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${display.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-canvas text-fg font-sans">

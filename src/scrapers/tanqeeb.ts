@@ -175,7 +175,29 @@ async function saveJobs(jobs: ScrapedJob[]) {
 
 export async function runScrape() {
     console.log(`[${new Date().toISOString()}] Starting Tanqeeb scrape (Egypt, last ${CUTOFF_DAYS} days)...`)
-    const browser = await chromium.launch({ headless: true })
+
+    const proxyServer = process.env.PROXY_SERVER || process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+    const proxy = proxyServer
+        ? {
+            server: proxyServer,
+            ...(process.env.PROXY_USERNAME && { username: process.env.PROXY_USERNAME }),
+            ...(process.env.PROXY_PASSWORD && { password: process.env.PROXY_PASSWORD }),
+        }
+        : undefined
+
+    if (proxy) {
+        console.log(`Using proxy: ${proxyServer}`)
+    }
+
+    const browser = await chromium.launch({
+        headless: true,
+        args: [
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-blink-features=AutomationControlled',
+        ],
+        ...(proxy && { proxy }),
+    })
     const cutoff = new Date(Date.now() - CUTOFF_DAYS * 24 * 60 * 60 * 1000)
 
     let totalCreated = 0
