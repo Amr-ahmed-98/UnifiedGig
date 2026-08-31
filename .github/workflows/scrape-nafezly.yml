@@ -1,4 +1,4 @@
-name: Scrape Freelancer Projects
+name: Scrape Nafezly Projects
 
 on:
   schedule:
@@ -16,10 +16,6 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx playwright install --with-deps chromium
-      - run: npm run scrape:freelancer
+      - run: npm run scrape:nafezly
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: npx prisma generate

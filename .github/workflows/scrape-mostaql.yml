@@ -17,6 +17,8 @@ jobs:
       - run: npx prisma generate
       - run: npx playwright install --with-deps chromium
       - run: npm run scrape:mostaql
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: npx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
