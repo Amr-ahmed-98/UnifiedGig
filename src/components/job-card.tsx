@@ -13,7 +13,7 @@ const modeStyles = {
   onsite: { label: 'On-site', color: '#FF5C38' },
 } as const
 
-const initialColors = ['#8B5CF6', '#22E0D6', '#FF5C38', '#CCFF00']
+const initialColors = ['#8B5CF6', '#22E0D6', '#FF5C38', '#CCFF00', '#0084FF']
 
 function companyInitials(company: string) {
   const words = company.trim().split(/\s+/).filter(Boolean)

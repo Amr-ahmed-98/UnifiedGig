@@ -10,6 +10,7 @@ export const sources: Source[] = [
     { id: 'indeed', name: 'Indeed', color: '#8B5CF6', kind: 'jobs' },
     { id: 'glassdoor', name: 'Glassdoor', color: '#CCFF00', kind: 'jobs' },
     { id: 'wuzzuf', name: 'Wuzzuf', color: '#FF5C38', kind: 'jobs' },
+    { id: 'tanqeeb', name: 'Tanqeeb', color: '#0084FF', kind: 'jobs' },
     { id: 'freelancer', name: 'Freelancer', color: '#CCFF00', kind: 'freelance' },
     { id: 'nafezly', name: 'Nafezly', color: '#22E0D6', kind: 'freelance' },
     { id: 'mostaql', name: 'Mostaql', color: '#FF5C38', kind: 'freelance' },

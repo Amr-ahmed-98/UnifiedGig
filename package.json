@@ -14,7 +14,8 @@
     "scrape:mostaql": "tsx src/scrapers/mostaql.ts",
     "scrape:indeed": "tsx src/scrapers/indeed.ts",
     "scrape:glassdoor": "tsx src/scrapers/glassdoor.ts",
-    "scrape:nafezly": "tsx src/scrapers/nafezly.ts"
+    "scrape:nafezly": "tsx src/scrapers/nafezly.ts",
+    "scrape:tanqeeb": "tsx src/scrapers/tanqeeb.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import { ArrowRight, Briefcase, Palette, Sparkles, Zap } from 'lucide-react'
@@ -7,38 +8,61 @@ import { MeshBackground } from '@/components/mesh-background'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { sources } from '@/data/sources'
 
-const stats = [
-  { value: 48210, label: 'Live listings' },
-  { value: 7, label: 'Sources merged' },
-  { value: 30, suffix: ' min', label: 'Refresh cycle' },
-]
-
-const cards = [
-  {
-    to: '/jobs',
-    eyebrow: 'Full-time & contract',
-    title: 'Browse Jobs',
-    body: 'Salaried roles from LinkedIn, Indeed, Glassdoor and Wuzzuf — deduped, tagged, ranked by freshness.',
-    color: '#CCFF00',
-    textClass: 'text-lime-deep dark:text-lime',
-    Icon: Briefcase,
-    count: 31904,
-    countLabel: 'roles',
-  },
-  {
-    to: '/freelance',
-    eyebrow: 'Freelance & fractional',
-    title: 'Browse Freelance Projects',
-    body: 'Fixed-price and hourly gigs from Freelancer, Nafezly and Mostaql — budgets up front, deadlines flagged.',
-    color: '#FF5C38',
-    textClass: 'text-coral',
-    Icon: Palette,
-    count: 16306,
-    countLabel: 'projects',
-  },
-]
+interface StatsData {
+  jobs: number
+  projects: number
+  total: number
+  sourcesCount: number
+}
 
 export default function LandingPage() {
+  const [statsData, setStatsData] = useState<StatsData | null>(null)
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load stats')
+        return res.json()
+      })
+      .then((data: StatsData) => {
+        setStatsData(data)
+      })
+      .catch((err) => {
+        console.error('Could not fetch real counts:', err)
+      })
+  }, [])
+
+  const cards = [
+    {
+      to: '/jobs',
+      eyebrow: 'Full-time & contract',
+      title: 'Browse Jobs',
+      body: 'Salaried roles from LinkedIn, Indeed, Glassdoor, Wuzzuf, and Tanqeeb — deduped, tagged, ranked by freshness.',
+      color: '#CCFF00',
+      textClass: 'text-lime-deep dark:text-lime',
+      Icon: Briefcase,
+      count: statsData?.jobs ?? 0,
+      countLabel: 'roles',
+    },
+    {
+      to: '/freelance',
+      eyebrow: 'Freelance & fractional',
+      title: 'Browse Freelance Projects',
+      body: 'Fixed-price and hourly gigs from Freelancer, Nafezly and Mostaql — budgets up front, deadlines flagged.',
+      color: '#FF5C38',
+      textClass: 'text-coral',
+      Icon: Palette,
+      count: statsData?.projects ?? 0,
+      countLabel: 'projects',
+    },
+  ]
+
+  const stats = [
+    { value: statsData?.total ?? 0, label: 'Live listings' },
+    { value: statsData?.sourcesCount ?? sources.length, label: 'Sources merged' },
+    { value: 30, suffix: ' min', label: 'Refresh cycle' },
+  ]
+
   return (
     <main className="relative w-full overflow-hidden bg-canvas">
       <section className="relative isolate min-h-[88vh] px-5 pb-24 pt-16 sm:px-8 sm:pt-24">
@@ -52,7 +76,7 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 rounded-full border border-lime/40 bg-lime/10 px-4 py-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-lime-deep dark:text-lime"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Seven job boards. One feed.
+            {sources.length} platforms merged. One feed.
           </motion.span>
 
           <motion.h1
@@ -122,7 +146,7 @@ export default function LandingPage() {
       <section aria-label="Sources we aggregate" className="relative border-y border-edge/10 bg-panel/60 py-6">
         <div className="flex overflow-hidden">
           <div className="ug-marquee flex shrink-0 items-center gap-10 pr-10">
-            {[...sources, ...sources].map((s, i) => (
+            {[...sources, ...sources, ...sources, ...sources].map((s, i) => (
               <span key={`${s.id}-${i}`} className="flex shrink-0 items-center gap-2.5 font-[var(--font-display)] text-xl font-bold text-fg/45 sm:text-2xl">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                 {s.name}
