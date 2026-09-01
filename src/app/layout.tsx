@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { CustomCursor } from "@/components/custom-cursor"
 import { PageTransition } from "@/components/page-transition"
 import { NavBar } from "@/components/navbar"
+import { Analytics } from "@vercel/analytics/next";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["400","500","600","700"] });
 const mono = Geist_Mono({ variable: "--font-mono", subsets: ["latin"] });
@@ -26,6 +27,7 @@ export default function RootLayout({
           <NavBar />
           <PageTransition>{children}</PageTransition>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
