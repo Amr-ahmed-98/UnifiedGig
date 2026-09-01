@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { chromium } from 'playwright'
+import { chromium, type Browser } from 'patchright'
 import * as cheerio from 'cheerio'
 import { prisma } from '@/lib/prisma'
 
@@ -99,7 +99,7 @@ function parseJobs(html: string): ScrapedJob[] {
 }
 
 async function scrapePage(
-    browser: import('playwright').Browser,
+    browser: Browser,
     title: string,
     pageNum: number,
     attempt = 1
