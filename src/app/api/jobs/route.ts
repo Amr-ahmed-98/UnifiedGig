@@ -6,18 +6,20 @@ export async function GET(request: NextRequest) {
 
     const remote = searchParams.get('remote')
     const hybrid = searchParams.get('hybrid')
-    const source = searchParams.get('source')
+    const sourceParams = searchParams.getAll('source')
     const location = searchParams.get('location')
     const datePostedAfter = searchParams.get('datePostedAfter')
     const q = searchParams.get('q')
     const take = searchParams.get('take')
     const skip = searchParams.get('skip')
 
+    const sources = sourceParams.flatMap((s) => s.split(',')).map((s) => s.trim()).filter(Boolean)
+
     try {
         const result = await getJobs({
             remote: remote === 'true' ? true : remote === 'false' ? false : undefined,
             hybrid: hybrid === 'true' ? true : hybrid === 'false' ? false : undefined,
-            source: source ?? undefined,
+            source: sources.length > 0 ? sources : undefined,
             location: location ?? undefined,
             datePostedAfter: datePostedAfter ? new Date(datePostedAfter) : undefined,
             q: q ?? undefined,

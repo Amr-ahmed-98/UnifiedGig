@@ -57,7 +57,15 @@ export default function FreelancePage() {
       })
       .then((data: { projects: FreelanceProject[]; total: number }) => {
         if (!cancelled) {
-          setProjects(data.projects)
+          const uniqueProjects: FreelanceProject[] = []
+          const seen = new Set<string>()
+          for (const project of data.projects || []) {
+            if (!seen.has(project.id)) {
+              seen.add(project.id)
+              uniqueProjects.push(project)
+            }
+          }
+          setProjects(uniqueProjects)
           setTotal(data.total)
         }
       })
@@ -80,7 +88,11 @@ export default function FreelancePage() {
         return res.json()
       })
       .then((data: { projects: FreelanceProject[]; total: number }) => {
-        setProjects((prev) => [...prev, ...data.projects])
+        setProjects((prev) => {
+          const seen = new Set(prev.map((p) => p.id))
+          const fresh = (data.projects || []).filter((p) => !seen.has(p.id))
+          return [...prev, ...fresh]
+        })
         setTotal(data.total)
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load projects'))

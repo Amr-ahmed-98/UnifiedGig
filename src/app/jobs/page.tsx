@@ -72,7 +72,15 @@ export default function JobsPage() {
       })
       .then((data: { jobs: Job[]; total: number }) => {
         if (!cancelled) {
-          setJobs(data.jobs)
+          const uniqueJobs: Job[] = []
+          const seen = new Set<string>()
+          for (const job of data.jobs || []) {
+            if (!seen.has(job.id)) {
+              seen.add(job.id)
+              uniqueJobs.push(job)
+            }
+          }
+          setJobs(uniqueJobs)
           setTotal(data.total)
         }
       })
@@ -95,7 +103,11 @@ export default function JobsPage() {
         return res.json()
       })
       .then((data: { jobs: Job[]; total: number }) => {
-        setJobs((prev) => [...prev, ...data.jobs])
+        setJobs((prev) => {
+          const seen = new Set(prev.map((j) => j.id))
+          const fresh = (data.jobs || []).filter((j) => !seen.has(j.id))
+          return [...prev, ...fresh]
+        })
         setTotal(data.total)
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load jobs'))
