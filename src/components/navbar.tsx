@@ -26,7 +26,7 @@ export function NavBar() {
           </span>
           <span className="relative inline-block">
             <span className="relative z-10 font-[var(--font-display)] text-xl font-bold tracking-tight text-fg">
-              Unified<span className="text-lime-deep dark:text-lime">Gig</span>
+              Unified<span className="text-lime-text">Gig</span>
             </span>
             <span aria-hidden className="absolute inset-x-0 -bottom-0.5 z-0 h-[3px] rounded-full bg-grape/60" />
           </span>

@@ -27,7 +27,7 @@ export function SearchBar({ value, onChange, placeholder, accent = '#CCFF00', la
         {label}
       </label>
       <Search
-        className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors duration-300 text-fg/50"
+        className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors duration-300 text-fg/60"
         style={{ color: focused ? accent : undefined }}
         aria-hidden="true"
       />
@@ -39,7 +39,7 @@ export function SearchBar({ value, onChange, placeholder, accent = '#CCFF00', la
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className="w-full rounded-full bg-panel/80 py-4 pl-14 pr-12 font-[var(--font-display)] text-base text-fg outline-none placeholder:text-fg/40 sm:text-lg"
+        className="w-full rounded-full bg-panel/80 py-4 pl-14 pr-12 font-[var(--font-display)] text-base text-fg outline-none placeholder:text-fg/60 sm:text-lg"
       />
       {value && (
         <button

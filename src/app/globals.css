@@ -15,8 +15,10 @@
   --color-lime: #CCFF00;
   --color-lime-soft: #E4FF7A;
   --color-lime-deep: #9BC400;
+  --color-lime-text: var(--ug-lime-text);
   --color-coral: #FF5C38;
   --color-coral-soft: #FF8E75;
+  --color-coral-text: var(--ug-coral-text);
   --color-aqua: #22E0D6;
   --color-grape: #8B5CF6;
   --color-ink: #0A0616;
@@ -33,6 +35,9 @@
   --ug-panel-2: #EFE8D8;
   --ug-fg: #0A0616;
   --ug-edge: #0A0616;
+  /* darkened vs base accent so text hits 4.5:1 on light canvas/panel */
+  --ug-lime-text: #5D7600;
+  --ug-coral-text: #A63C24;
 }
 
 .dark {
@@ -41,6 +46,9 @@
   --ug-panel-2: #1A0F33;
   --ug-fg: #F6F2E9;
   --ug-edge: #FFFFFF;
+  /* base accents already pass contrast on dark canvas/panel */
+  --ug-lime-text: #CCFF00;
+  --ug-coral-text: #FF5C38;
 }
 
 @layer base {

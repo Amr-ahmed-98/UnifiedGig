@@ -39,7 +39,7 @@ export default function LandingPage() {
       title: 'Browse Jobs',
       body: 'Salaried roles from LinkedIn, Indeed, Glassdoor, Wuzzuf, and Tanqeeb — deduped, tagged, ranked by freshness.',
       color: '#CCFF00',
-      textClass: 'text-lime-deep dark:text-lime',
+      textClass: 'text-lime-text',
       Icon: Briefcase,
       count: statsData?.jobs ?? 0,
       countLabel: 'roles',
@@ -50,7 +50,7 @@ export default function LandingPage() {
       title: 'Browse Freelance Projects',
       body: 'Fixed-price and hourly gigs from Freelancer, Nafezly and Mostaql — budgets up front, deadlines flagged.',
       color: '#FF5C38',
-      textClass: 'text-coral',
+      textClass: 'text-coral-text',
       Icon: Palette,
       count: statsData?.projects ?? 0,
       countLabel: 'projects',
@@ -73,7 +73,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full border border-lime/40 bg-lime/10 px-4 py-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-lime-deep dark:text-lime"
+            className="inline-flex items-center gap-2 rounded-full border border-lime/40 bg-lime/10 px-4 py-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-lime-text"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {sources.length} platforms merged. One feed.
@@ -88,7 +88,7 @@ export default function LandingPage() {
             Stop tab-hopping.
             <br />
             <span className="relative inline-block">
-              <span className="relative z-10 text-lime-deep dark:text-lime">Start landing.</span>
+              <span className="relative z-10 text-lime-text">Start landing.</span>
               <span aria-hidden className="absolute inset-x-0 bottom-2 z-0 h-4 -rotate-1 bg-grape/50 sm:bottom-3 sm:h-6" />
             </span>
           </motion.h1>
@@ -123,7 +123,7 @@ export default function LandingPage() {
                       <c.Icon className="h-7 w-7" strokeWidth={2.25} />
                     </span>
 
-                    <p className="mt-6 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-fg/40">{c.eyebrow}</p>
+                    <p className="mt-6 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.18em] text-fg/60">{c.eyebrow}</p>
                     <h2 className="mt-2 font-[var(--font-display)] text-3xl font-bold leading-tight text-fg sm:text-4xl">{c.title}</h2>
                     <p className="mt-3 text-base leading-relaxed text-fg/60">{c.body}</p>
 
@@ -147,7 +147,7 @@ export default function LandingPage() {
         <div className="flex overflow-hidden">
           <div className="ug-marquee flex shrink-0 items-center gap-10 pr-10">
             {[...sources, ...sources, ...sources, ...sources].map((s, i) => (
-              <span key={`${s.id}-${i}`} className="flex shrink-0 items-center gap-2.5 font-[var(--font-display)] text-xl font-bold text-fg/45 sm:text-2xl">
+              <span key={`${s.id}-${i}`} className="flex shrink-0 items-center gap-2.5 font-[var(--font-display)] text-xl font-bold text-fg/60 sm:text-2xl">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                 {s.name}
               </span>
@@ -170,7 +170,7 @@ export default function LandingPage() {
               <p className="font-[var(--font-display)] text-3xl font-bold text-fg sm:text-4xl">
                 <AnimatedCounter value={s.value} suffix={s.suffix ?? ''} />
               </p>
-              <p className="mt-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.16em] text-fg/45">{s.label}</p>
+              <p className="mt-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.16em] text-fg/60">{s.label}</p>
             </motion.div>
           ))}
         </div>
@@ -182,7 +182,7 @@ export default function LandingPage() {
           <div className="relative">
             <h2 className="mx-auto max-w-3xl font-[var(--font-display)] text-4xl font-bold leading-[1.05] text-fg sm:text-6xl">
               One feed. Every opportunity.
-              <span className="text-coral"> Zero noise.</span>
+              <span className="text-coral-text"> Zero noise.</span>
             </h2>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/jobs" data-cursor-hover className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-lime px-7 py-4 font-[var(--font-display)] text-base font-bold text-ink transition-transform duration-300 hover:-translate-y-1 sm:w-auto">
@@ -198,8 +198,8 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-edge/10 px-5 py-10 sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-fg/40 sm:flex-row">
-          <p className="font-[var(--font-display)] font-bold text-fg/70">Unified<span className="text-lime-deep dark:text-lime">Gig</span></p>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-fg/60 sm:flex-row">
+          <p className="font-[var(--font-display)] font-bold text-fg/70">Unified<span className="text-lime-text">Gig</span></p>
           <p>© 2026 UnifiedGig. Aggregated with care.</p>
         </div>
       </footer>

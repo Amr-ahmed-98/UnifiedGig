@@ -42,7 +42,7 @@ function FreelanceCardImpl({ project, index }: FreelanceCardProps) {
 
       <div className="relative flex h-full flex-col rounded-[calc(1.5rem-1px)] bg-panel p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
-          <p className="inline-flex items-center gap-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-wider text-fg/40">
+          <p className="inline-flex items-center gap-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-wider text-fg/60">
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: source.color }} aria-hidden="true" />
             {source.name}
           </p>
@@ -63,7 +63,7 @@ function FreelanceCardImpl({ project, index }: FreelanceCardProps) {
           </a>
         </h3>
         {project.description && (
-          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-fg/55">{project.description}</p>
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-fg/60">{project.description}</p>
         )}
 
         {project.skills.length > 0 && (
@@ -85,8 +85,8 @@ function FreelanceCardImpl({ project, index }: FreelanceCardProps) {
 
         <div className="mt-6 flex items-end justify-between gap-4 border-t border-edge/10 pt-4">
           <div>
-            <p className="font-[var(--font-mono)] text-[10px] uppercase tracking-[0.18em] text-fg/40">Budget</p>
-            <p className="font-[var(--font-display)] text-2xl font-bold text-lime-deep dark:text-lime sm:text-3xl">
+            <p className="font-[var(--font-mono)] text-[10px] uppercase tracking-[0.18em] text-fg/60">Budget</p>
+            <p className="font-[var(--font-display)] text-2xl font-bold text-lime-text sm:text-3xl">
               {project.budget ?? 'Not listed'}
             </p>
           </div>

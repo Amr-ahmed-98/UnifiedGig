@@ -91,8 +91,8 @@ function JobCardImpl({ job, index }: JobCardProps) {
 
             {job.salary && (
               <div className="hidden shrink-0 text-right sm:block">
-                <p className="font-[var(--font-display)] text-base font-bold text-lime-deep dark:text-lime">{job.salary}</p>
-                <p className="mt-1 font-[var(--font-mono)] text-[11px] uppercase tracking-wider text-fg/40">
+                <p className="font-[var(--font-display)] text-base font-bold text-lime-text">{job.salary}</p>
+                <p className="mt-1 font-[var(--font-mono)] text-[11px] uppercase tracking-wider text-fg/60">
                   {postedLabel(job.datePosted)}
                 </p>
               </div>
@@ -108,7 +108,7 @@ function JobCardImpl({ job, index }: JobCardProps) {
             </span>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-edge/10 pt-4 text-xs text-fg/50">
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-edge/10 pt-4 text-xs text-fg/60">
             {job.location && (
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
@@ -126,7 +126,7 @@ function JobCardImpl({ job, index }: JobCardProps) {
             </span>
           </div>
 
-          {job.salary && <p className="mt-3 font-[var(--font-display)] text-sm font-bold text-lime-deep dark:text-lime sm:hidden">{job.salary}</p>}
+          {job.salary && <p className="mt-3 font-[var(--font-display)] text-sm font-bold text-lime-text sm:hidden">{job.salary}</p>}
         </div>
       </div>
     </motion.article>
