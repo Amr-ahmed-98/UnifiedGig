@@ -60,8 +60,6 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
-  // Add your real Google Search Console verification code here after you claim the property.
-  // verification: { google: "YOUR_VERIFICATION_CODE" },
 };
 export default function RootLayout({
   children,
@@ -71,6 +69,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${display.variable} ${mono.variable} h-full antialiased`}>
       <head>
+        <meta name="google-site-verification" content="xiDI7BBGZ3IxVMHVxA2gwvyWOYfFKbiszva65owsB1k" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
