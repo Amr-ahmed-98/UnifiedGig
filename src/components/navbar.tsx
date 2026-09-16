@@ -11,6 +11,7 @@ const links = [
   { to: '/', label: 'Home' },
   { to: '/jobs', label: 'Jobs' },
   { to: '/freelance', label: 'Freelance' },
+  { to: '/social-jobs', label: 'Social' },
 ]
 
 export function NavBar() {

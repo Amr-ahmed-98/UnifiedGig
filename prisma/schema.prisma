@@ -26,6 +26,29 @@ model Job {
   @@index([source])
 }
 
+model SocialJobPost {
+  id               String   @id @default(cuid())
+  title            String
+  authorName       String?
+  authorTitle      String?
+  authorImageUrl   String?
+  description      String?
+  salary           String?
+  location         String?
+  remote           Boolean  @default(false)
+  tags             String[] // classification tags picked at embed time
+  recruiterContact String? // optional email or referral note
+  imageUrl         String? // og:image from the LinkedIn post
+  url              String   @unique
+  source           String   @default("linkedin")
+  createdAt        DateTime @default(now())
+  expiresAt        DateTime // createdAt + 48h, checked by cleanup job + lazy GET cleanup
+
+  @@index([expiresAt])
+  @@index([remote])
+  @@index([createdAt])
+}
+
 model FreelanceProject {
   id          String    @id @default(cuid())
   title       String

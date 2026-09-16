@@ -20,7 +20,8 @@
     "scrape:indeed": "tsx src/scrapers/indeed.ts",
     "scrape:glassdoor": "tsx src/scrapers/glassdoor.ts",
     "scrape:nafezly": "tsx src/scrapers/nafezly.ts",
-    "scrape:tanqeeb": "tsx src/scrapers/tanqeeb.ts"
+    "scrape:tanqeeb": "tsx src/scrapers/tanqeeb.ts",
+    "cleanup:social-jobs": "tsx src/scripts/cleanup-social-jobs.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
