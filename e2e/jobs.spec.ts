@@ -16,7 +16,6 @@ test.describe('Jobs page', () => {
 
     test('filters results by search query', async ({ page }) => {
         const searchInput = page.getByPlaceholder('Search titles, companies…')
-        await searchInput.click()
         await searchInput.fill('Frontend')
         // Search input is debounced 300ms before it refetches.
         await expect(page.getByRole('link', { name: 'Frontend Engineer' })).toBeVisible()
@@ -43,7 +42,6 @@ test.describe('Jobs page', () => {
 
     test('shows an empty state and can reset filters', async ({ page }) => {
         const searchInput = page.getByPlaceholder('Search titles, companies…')
-        await searchInput.click()
         await searchInput.fill('no such role exists')
         await expect(page.getByText('Nothing matches — yet.')).toBeVisible()
 

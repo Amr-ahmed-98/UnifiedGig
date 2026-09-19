@@ -15,7 +15,6 @@ test.describe('Freelance page', () => {
 
     test('filters results by search query', async ({ page }) => {
         const searchInput = page.getByPlaceholder('Search projects, descriptions…')
-        await searchInput.click()
         await searchInput.fill('landing page')
         await expect(page.getByRole('link', { name: 'Build a landing page' })).toBeVisible()
         await expect(page.getByRole('link', { name: 'Fix API rate limiting bug' })).not.toBeVisible()
@@ -30,7 +29,6 @@ test.describe('Freelance page', () => {
 
     test('shows an empty state when nothing matches', async ({ page }) => {
         const searchInput = page.getByPlaceholder('Search projects, descriptions…')
-        await searchInput.click()
         await searchInput.fill('nothing will match this')
         await expect(page.getByText('Nothing matches — yet.')).toBeVisible()
     })

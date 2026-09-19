@@ -8,5 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
         { url: `${SITE_URL}/jobs`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
         { url: `${SITE_URL}/freelance`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+        { url: `${SITE_URL}/social-jobs`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
     ];
 }

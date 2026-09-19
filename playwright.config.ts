@@ -19,6 +19,11 @@ export default defineConfig({
         baseURL,
         actionTimeout: 15_000,
         navigationTimeout: 30_000,
+        // The app's hero backgrounds run infinite blur/transform animations that
+        // globals.css already turns off under prefers-reduced-motion. Software-rendered
+        // browsers (WebKit on Windows, headless CI) drop to a few fps with them on, which
+        // starves Playwright's stable/visible checks and causes click timeouts.
+        reducedMotion: 'reduce',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
@@ -33,7 +38,9 @@ export default defineConfig({
 
 
     webServer: {
-        command: `npx next dev -p ${PORT}`,
+        // E2E_PROD=1 runs the production build (run `npm run build` first). Much lighter
+        // than `next dev`, which compiles routes on demand and hydrates slowly.
+        command: process.env.E2E_PROD ? `npx next start -p ${PORT}` : `npx next dev -p ${PORT}`,
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

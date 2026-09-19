@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 import type { Job } from '../src/types/job'
 import type { FreelanceProject } from '../src/types/freelance'
+import type { SocialJobPost } from '../src/types/socialJob'
 
 export const mockJobs: Job[] = [
     {
@@ -98,5 +99,147 @@ export async function mockApi(page: Page, options: { jobs?: Job[]; projects?: Fr
         await route.fulfill({
             json: { jobs: jobs.length, projects: projects.length, total: jobs.length + projects.length, sourcesCount: 8 },
         })
+    })
+}
+
+export const mockSocialPosts: SocialJobPost[] = [
+    {
+        id: 'social-1',
+        title: 'Senior Frontend Engineer',
+        authorName: 'Jane Doe',
+        authorTitle: 'Engineering Manager',
+        authorImageUrl: null,
+        description: 'We are hiring a senior frontend engineer for our platform team.',
+        salary: '$120k - $160k',
+        location: 'Cairo, Egypt',
+        remote: false,
+        tags: ['Frontend', 'Full-Time'],
+        recruiterContact: null,
+        imageUrl: null,
+        url: 'https://www.linkedin.com/posts/jane-doe_activity-1',
+        source: 'linkedin',
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 3_600_000).toISOString(),
+    },
+    {
+        id: 'social-2',
+        title: 'Remote AI Engineer',
+        authorName: 'Ahmed Ali',
+        authorTitle: 'Founder at AIStartup',
+        authorImageUrl: null,
+        description: 'Looking for a machine learning engineer to join our growing team.',
+        salary: null,
+        location: 'Remote',
+        remote: true,
+        tags: ['AI/ML', 'Remote'],
+        recruiterContact: null,
+        imageUrl: null,
+        url: 'https://www.linkedin.com/posts/ahmed-ali_activity-2',
+        source: 'linkedin',
+        createdAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+        expiresAt: new Date(Date.now() + 45 * 3_600_000).toISOString(),
+    },
+    {
+        id: 'social-3',
+        title: 'Fractional CTO needed',
+        authorName: 'Sara Smith',
+        authorTitle: 'CEO at EarlyCo',
+        authorImageUrl: null,
+        description: 'Hiring a fractional CTO for 2 days a week. Contract engagement.',
+        salary: null,
+        location: 'Dubai, UAE',
+        remote: false,
+        tags: ['Fractional', 'Contract'],
+        recruiterContact: null,
+        imageUrl: null,
+        url: 'https://www.linkedin.com/posts/sara-smith_activity-3',
+        source: 'linkedin',
+        createdAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+        expiresAt: new Date(Date.now() + 5 * 3_600_000).toISOString(),
+    },
+]
+
+export async function mockSocialApi(page: Page, options: { posts?: SocialJobPost[] } = {}) {
+    const posts = options.posts ?? mockSocialPosts
+
+    await page.route('**/api/social-jobs**', async (route) => {
+        const request = route.request()
+        const url = new URL(request.url())
+        const method = request.method()
+
+        if (method === 'GET') {
+            const q = url.searchParams.get('q')?.toLowerCase()
+            const tags = url.searchParams.getAll('tag')
+            const remoteOnly = url.searchParams.get('remote') === 'true'
+            const skip = Number(url.searchParams.get('skip') ?? '0')
+            const take = Number(url.searchParams.get('take') ?? '24')
+
+            let filtered = posts
+            if (q) {
+                filtered = filtered.filter(
+                    (p) =>
+                        p.title.toLowerCase().includes(q) ||
+                        (p.authorName ?? '').toLowerCase().includes(q)
+                )
+            }
+            if (tags.length) filtered = filtered.filter((p) => tags.some((t) => p.tags.includes(t)))
+            if (remoteOnly) filtered = filtered.filter((p) => p.remote)
+
+            await route.fulfill({ json: { posts: filtered.slice(skip, skip + take), total: filtered.length } })
+            return
+        }
+
+        if (method === 'DELETE') {
+            await route.fulfill({ json: { ok: true } })
+            return
+        }
+
+        if (method === 'POST' && url.pathname.endsWith('/preview')) {
+            await route.fulfill({
+                json: {
+                    preview: {
+                        title: 'Newly Embedded Role',
+                        authorName: 'Jane Doe',
+                        description: 'A brand new embedded post about an open role.',
+                        imageUrl: null,
+                        salary: 'Unknown',
+                        location: 'Unknown',
+                        remote: true,
+                    },
+                    tags: ['Remote'],
+                    resolvedUrl: 'https://www.linkedin.com/posts/jane-doe_activity-9',
+                },
+            })
+            return
+        }
+
+        if (method === 'POST') {
+            await route.fulfill({
+                status: 201,
+                json: {
+                    post: {
+                        id: 'social-9',
+                        title: 'Newly Embedded Role',
+                        authorName: 'Jane Doe',
+                        authorTitle: null,
+                        authorImageUrl: null,
+                        description: 'A brand new embedded post about an open role.',
+                        salary: null,
+                        location: null,
+                        remote: true,
+                        tags: ['Remote'],
+                        recruiterContact: null,
+                        imageUrl: null,
+                        url: 'https://www.linkedin.com/posts/jane-doe_activity-9',
+                        source: 'linkedin',
+                        createdAt: new Date().toISOString(),
+                        expiresAt: new Date(Date.now() + 48 * 3_600_000).toISOString(),
+                    },
+                },
+            })
+            return
+        }
+
+        await route.fulfill({ json: {} })
     })
 }
