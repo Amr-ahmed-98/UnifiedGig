@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { JobCard } from './job-card'
 import type { Job } from '@/types/job'
+import { buildShareUrl } from '@/lib/site'
 
 const baseJob: Job = {
     id: '1',
@@ -16,6 +17,9 @@ const baseJob: Job = {
     url: 'https://example.com/job/1',
     source: 'wuzzuf',
 }
+
+// Shares hand out this job's own page on UnifiedGig, not the source URL.
+const shareUrl = buildShareUrl('job', baseJob.id)
 
 describe('JobCard', () => {
     it('renders title, company and location', () => {
@@ -56,5 +60,55 @@ expect(screen.queryByText('Cairo, Egypt')).not.toBeInTheDocument()
 it('falls back to a generic source style for an unknown source id', () => {
     render(<JobCard job={{ ...baseJob, source: 'some-new-board' }} index = { 0} />)
 expect(screen.getByText(/via some-new-board/)).toBeInTheDocument()
+    })
+})
+
+describe('JobCard sharing', () => {
+    const writeText = vi.fn()
+
+    beforeEach(() => {
+        writeText.mockReset()
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        })
+    })
+
+    it('renders a share button labelled with the job title', () => {
+        render(<JobCard job={baseJob} index={0} />)
+        expect(
+            screen.getByRole('button', { name: 'Share job: Backend Developer' })
+        ).toBeInTheDocument()
+    })
+
+    it('opens a share menu with all social targets and copies the UnifiedGig job url', async () => {
+        writeText.mockResolvedValue(undefined)
+        render(<JobCard job={baseJob} index={0} />)
+
+        fireEvent.click(screen.getByRole('button', { name: 'Share job: Backend Developer' }))
+
+        expect(screen.getByRole('menuitem', { name: 'Share via LinkedIn' })).toHaveAttribute(
+            'href',
+            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
+        )
+        expect(screen.getByRole('menuitem', { name: 'Share via WhatsApp' })).toBeInTheDocument()
+        expect(screen.getByRole('menuitem', { name: 'Share via Facebook' })).toBeInTheDocument()
+        expect(screen.getByRole('menuitem', { name: 'Share via X' })).toBeInTheDocument()
+
+        fireEvent.click(screen.getByRole('menuitem', { name: 'Copy link' }))
+        expect(await screen.findByText('Copied!')).toBeInTheDocument()
+        expect(writeText).toHaveBeenCalledWith(shareUrl)
+    })
+
+    it('includes company in the WhatsApp share message', () => {
+        render(<JobCard job={baseJob} index={0} />)
+        fireEvent.click(screen.getByRole('button', { name: 'Share job: Backend Developer' }))
+
+        expect(screen.getByRole('menuitem', { name: 'Share via WhatsApp' })).toHaveAttribute(
+            'href',
+            `https://wa.me/?text=${encodeURIComponent(
+                `Backend Developer — Acme Corp ${shareUrl}`
+            )}`
+        )
     })
 })

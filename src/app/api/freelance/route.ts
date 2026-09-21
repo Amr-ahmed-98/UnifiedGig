@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getFreelanceProjects } from '@/services/freelanceService'
+import { DEMO_PROJECTS } from '@/lib/demo-data'
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
@@ -12,6 +13,28 @@ export async function GET(request: NextRequest) {
     const skip = searchParams.get('skip')
 
     const sources = sourceParams.flatMap((s) => s.split(',')).map((s) => s.trim()).filter(Boolean)
+
+    // DEMO_MODE=true serves bundled listings so the app can be previewed with
+    // no database attached (local dev / sandboxes). Production leaves it unset.
+    if (process.env.DEMO_MODE === 'true') {
+        const needle = q?.toLowerCase()
+        let projects = DEMO_PROJECTS
+        if (needle) {
+            projects = projects.filter(
+                (p) =>
+                    p.title.toLowerCase().includes(needle) ||
+                    (p.description ?? '').toLowerCase().includes(needle)
+            )
+        }
+        if (sources.length > 0) projects = projects.filter((p) => sources.includes(p.source))
+
+        const start = skip ? Number(skip) : 0
+        const count = take ? Number(take) : 24
+        return NextResponse.json({
+            projects: projects.slice(start, start + count),
+            total: projects.length,
+        })
+    }
 
     try {
         const result = await getFreelanceProjects({

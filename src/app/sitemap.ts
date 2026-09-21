@@ -1,13 +1,56 @@
 import type { MetadataRoute } from "next";
+import { prisma } from "@/lib/prisma";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = "https://unified-gig.vercel.app";
+// Shared listing pages are real, indexable URLs now, so they belong in the
+// sitemap. Capped per type to keep the file small and the query cheap.
+const MAX_PER_TYPE = 500;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600;
+
+async function listingEntries(): Promise<MetadataRoute.Sitemap> {
+    try {
+        const [jobs, projects] = await Promise.all([
+            prisma.job.findMany({
+                select: { id: true, updatedAt: true },
+                orderBy: [{ datePosted: "desc" }, { id: "desc" }],
+                take: MAX_PER_TYPE,
+            }),
+            prisma.freelanceProject.findMany({
+                select: { id: true, updatedAt: true },
+                orderBy: [{ id: "desc" }],
+                take: MAX_PER_TYPE,
+            }),
+        ]);
+
+        return [
+            ...jobs.map((job) => ({
+                url: `${SITE_URL}/jobs/${job.id}`,
+                lastModified: job.updatedAt,
+                changeFrequency: "daily" as const,
+                priority: 0.7,
+            })),
+            ...projects.map((project) => ({
+                url: `${SITE_URL}/freelance/${project.id}`,
+                lastModified: project.updatedAt,
+                changeFrequency: "daily" as const,
+                priority: 0.7,
+            })),
+        ];
+    } catch {
+        // Sitemap generation must never break a build or a crawl just because
+        // the database is unreachable — fall back to the static routes.
+        return [];
+    }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const now = new Date();
     return [
         { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
         { url: `${SITE_URL}/jobs`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
         { url: `${SITE_URL}/freelance`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
         { url: `${SITE_URL}/social-jobs`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
+        ...(await listingEntries()),
     ];
 }

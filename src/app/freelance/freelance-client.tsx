@@ -37,6 +37,15 @@ function FreelanceClient() {
 
   const debouncedQuery = useDebouncedValue(query, 300)
 
+  // Seed the search box from ?q= in the URL — powers the homepage
+  // "popular searches" chips and deep links from search engines. Done after
+  // mount (not in the useState initializer) to avoid a hydration mismatch.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q')
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading window.location during render would break SSR hydration; syncing once on mount is the safe pattern here.
+    if (q && q.trim()) setQuery(q)
+  }, [])
+
   const buildParams = (skip: number) => {
     const params = new URLSearchParams()
     if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim())

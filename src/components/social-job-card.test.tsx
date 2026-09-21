@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { SocialJobCard } from './social-job-card'
 import type { SocialJobPost } from '@/types/socialJob'
+import { buildShareUrl } from '@/lib/site'
 
 function post(overrides: Partial<SocialJobPost> = {}): SocialJobPost {
     return {
@@ -175,6 +176,49 @@ describe('SocialJobCard', () => {
             render(<SocialJobCard post={post()} index={0} />)
 
             expect(screen.queryByRole('button', { name: 'Discard post' })).not.toBeInTheDocument()
+        })
+    })
+
+    describe('sharing', () => {
+        const writeText = vi.fn()
+
+        beforeEach(() => {
+            writeText.mockReset()
+            Object.defineProperty(navigator, 'clipboard', {
+                value: { writeText },
+                configurable: true,
+            })
+        })
+
+        it('renders a share button labelled with the post title', () => {
+            render(<SocialJobCard post={post()} index={0} />)
+            expect(
+                screen.getByRole('button', { name: 'Share post: Senior Frontend Engineer' })
+            ).toBeInTheDocument()
+        })
+
+        it('opens a share menu whose options point at the UnifiedGig post page', async () => {
+            const shareUrl = buildShareUrl('social', post().id)
+            writeText.mockResolvedValue(undefined)
+            render(<SocialJobCard post={post()} index={0} />)
+
+            fireEvent.click(
+                screen.getByRole('button', { name: 'Share post: Senior Frontend Engineer' })
+            )
+
+            expect(screen.getByRole('menuitem', { name: 'Share via LinkedIn' })).toHaveAttribute(
+                'href',
+                `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                    shareUrl
+                )}`
+            )
+            expect(screen.getByRole('menuitem', { name: 'Share via WhatsApp' })).toBeInTheDocument()
+            expect(screen.getByRole('menuitem', { name: 'Share via Facebook' })).toBeInTheDocument()
+            expect(screen.getByRole('menuitem', { name: 'Share via X' })).toBeInTheDocument()
+
+            fireEvent.click(screen.getByRole('menuitem', { name: 'Copy link' }))
+            expect(await screen.findByText('Copied!')).toBeInTheDocument()
+            expect(writeText).toHaveBeenCalledWith(shareUrl)
         })
     })
 })

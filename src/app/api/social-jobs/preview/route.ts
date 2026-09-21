@@ -24,6 +24,25 @@ export async function POST(request: NextRequest) {
         )
     }
 
+    // DEMO_MODE=true skips the live fetch of the LinkedIn page (no network in
+    // sandboxes) and returns a canned, still-embeddable preview instead.
+    if (process.env.DEMO_MODE === 'true') {
+        return NextResponse.json({
+            preview: {
+                title: 'Demo Preview — Hiring Now',
+                authorName: 'Demo Recruiter',
+                description:
+                    'This is a bundled demo preview so the embed flow can be tested without network access to LinkedIn.',
+                imageUrl: null,
+                salary: 'Unknown',
+                location: 'Unknown',
+                remote: true,
+            },
+            tags: ['Remote'],
+            resolvedUrl: raw,
+        })
+    }
+
     // lnkd.in share links need a redirect hop before we know the real post URL.
     let resolvedUrl: string
     try {

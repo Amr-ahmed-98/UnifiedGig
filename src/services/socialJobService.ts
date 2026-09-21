@@ -89,3 +89,15 @@ export async function createSocialJobPost(input: CreateSocialJobInput) {
 export async function deleteSocialJobPost(id: string) {
     return prisma.socialJobPost.delete({ where: { id } })
 }
+
+/**
+ * Single social post for its own share page. Expired posts (past their 48h
+ * window but not yet swept) are treated as gone, so a stale shared link shows
+ * the "no longer available" page instead of a dead listing.
+ */
+export async function getSocialJobById(id: string) {
+    if (!id) return null
+    const post = await prisma.socialJobPost.findUnique({ where: { id } })
+    if (!post) return null
+    return post.expiresAt.getTime() <= Date.now() ? null : post
+}

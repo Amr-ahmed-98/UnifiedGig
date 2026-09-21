@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getJobs } from '@/services/jobService'
+import { DEMO_JOBS } from '@/lib/demo-data'
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
@@ -14,6 +15,40 @@ export async function GET(request: NextRequest) {
     const skip = searchParams.get('skip')
 
     const sources = sourceParams.flatMap((s) => s.split(',')).map((s) => s.trim()).filter(Boolean)
+
+    // DEMO_MODE=true serves bundled listings so the app can be previewed with
+    // no database attached (local dev / sandboxes). Production leaves it unset.
+    if (process.env.DEMO_MODE === 'true') {
+        const needle = q?.toLowerCase()
+        let jobs = DEMO_JOBS
+        if (needle) {
+            jobs = jobs.filter(
+                (j) =>
+                    j.title.toLowerCase().includes(needle) ||
+                    j.company.toLowerCase().includes(needle)
+            )
+        }
+        if (location) {
+            const loc = location.toLowerCase()
+            jobs = jobs.filter((j) => j.location?.toLowerCase().includes(loc))
+        }
+        if (sources.length > 0) jobs = jobs.filter((j) => sources.includes(j.source))
+        if (remote === 'true') jobs = jobs.filter((j) => j.remote)
+        if (hybrid === 'true') jobs = jobs.filter((j) => j.hybrid)
+        if (datePostedAfter) {
+            const after = new Date(datePostedAfter).getTime()
+            if (!Number.isNaN(after)) {
+                jobs = jobs.filter((j) => j.datePosted && new Date(j.datePosted).getTime() >= after)
+            }
+        }
+
+        const start = skip ? Number(skip) : 0
+        const count = take ? Number(take) : 24
+        return NextResponse.json({
+            jobs: jobs.slice(start, start + count),
+            total: jobs.length,
+        })
+    }
 
     try {
         const result = await getJobs({

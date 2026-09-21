@@ -74,6 +74,28 @@ test.describe('Social jobs page', () => {
         await expect(link).toHaveAttribute('target', '_blank')
     })
 
+    test('share menu offers social targets and copies the post link', async ({ page }) => {
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+        const first = mockSocialPosts[0]
+        await page
+            .getByRole('button', { name: `Share post: ${first.title}` })
+            .first()
+            .click()
+
+        const menu = page.getByRole('menu')
+        await expect(menu).toBeVisible()
+        await expect(menu.getByRole('menuitem', { name: 'Share via LinkedIn' })).toHaveAttribute(
+            'href',
+            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(first.url)}`
+        )
+        await expect(menu.getByRole('menuitem', { name: 'Share via WhatsApp' })).toBeVisible()
+        await expect(menu.getByRole('menuitem', { name: 'Share via Facebook' })).toBeVisible()
+        await expect(menu.getByRole('menuitem', { name: 'Share via X' })).toBeVisible()
+
+        await menu.getByRole('menuitem', { name: 'Copy link' }).click()
+        await expect(page.getByText('Copied!')).toBeVisible()
+    })
+
     test('cards show a live time-left countdown', async ({ page }) => {
         // social-1 expires in 30h → "1d left"; social-3 (5h) shows the urgent "5h left"
         await expect(page.getByText('1d left').first()).toBeVisible()

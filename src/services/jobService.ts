@@ -53,3 +53,9 @@ export async function getJobs(filters: JobFilters = {}) {
 
     return { jobs, total }
 }
+
+/** Single job for its own share page. Returns null when the id is unknown. */
+export async function getJobById(id: string) {
+    if (!id) return null
+    return prisma.job.findUnique({ where: { id } })
+}

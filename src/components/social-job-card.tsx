@@ -5,6 +5,8 @@ import { motion } from 'motion/react'
 import { ArrowUpRight, Clock, MapPin, Trash2 } from 'lucide-react'
 import type { SocialJobPost } from '@/types/socialJob'
 import { expiryLabel, hoursRemaining } from '@/types/socialJob'
+import { ShareMenu } from '@/components/share-menu'
+import { buildShareUrl } from '@/lib/site'
 
 const initialColors = ['#8B5CF6', '#22E0D6', '#FF5C38', '#CCFF00', '#0084FF']
 
@@ -146,6 +148,13 @@ function SocialJobCardImpl({ post, index, onDiscard }: SocialJobCardProps) {
             </span>
 
             <div className="ml-auto flex items-center gap-3">
+              {/* Shares point at this post's own UnifiedGig page. */}
+              <ShareMenu
+                url={buildShareUrl('social', post.id)}
+                title={post.title}
+                subtitle={name}
+                label={`Share post: ${post.title}`}
+              />
               {onDiscard && (
                 <button
                   type="button"

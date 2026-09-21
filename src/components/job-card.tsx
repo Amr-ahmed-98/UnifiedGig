@@ -6,6 +6,8 @@ import { ArrowUpRight, Clock, MapPin } from 'lucide-react'
 import type { Job } from '@/types/job'
 import { workModeOf } from '@/types/job'
 import { sourceMap } from '@/data/sources'
+import { ShareMenu } from '@/components/share-menu'
+import { buildShareUrl } from '@/lib/site'
 
 const modeStyles = {
   remote: { label: 'Remote', color: '#CCFF00' },
@@ -124,6 +126,14 @@ function JobCardImpl({ job, index }: JobCardProps) {
               via {source.name}
               <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </span>
+            {/* Shares point at this job's own UnifiedGig page (which unfurls
+                with a generated preview image), not the source site. */}
+            <ShareMenu
+              url={buildShareUrl('job', job.id)}
+              title={job.title}
+              subtitle={job.company}
+              label={`Share job: ${job.title}`}
+            />
           </div>
 
           {job.salary && <p className="mt-3 font-[var(--font-display)] text-sm font-bold text-lime-text sm:hidden">{job.salary}</p>}

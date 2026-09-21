@@ -24,8 +24,8 @@ export async function getFreelanceProjects(filters: FreelanceFilters = {}) {
     const skillsList = Array.isArray(filters.skills)
         ? filters.skills.flatMap((s) => s.split(','))
         : filters.skills
-          ? filters.skills.split(',')
-          : []
+            ? filters.skills.split(',')
+            : []
     const cleanedSkills = skillsList.map((s) => s.trim()).filter(Boolean)
 
     const where = {
@@ -58,4 +58,10 @@ export async function getFreelanceProjects(filters: FreelanceFilters = {}) {
     ])
 
     return { projects, total }
+}
+
+/** Single project for its own share page. Returns null when the id is unknown. */
+export async function getFreelanceProjectById(id: string) {
+    if (!id) return null
+    return prisma.freelanceProject.findUnique({ where: { id } })
 }

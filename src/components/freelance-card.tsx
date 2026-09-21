@@ -6,6 +6,8 @@ import { ArrowUpRight, CalendarClock } from 'lucide-react'
 import type { FreelanceProject } from '@/types/freelance'
 import { deadlineDays } from '@/types/freelance'
 import { sourceMap } from '@/data/sources'
+import { ShareMenu } from '@/components/share-menu'
+import { buildShareUrl } from '@/lib/site'
 
 const skillColors = ['#CCFF00', '#22E0D6', '#FF5C38', '#8B5CF6']
 
@@ -90,9 +92,17 @@ function FreelanceCardImpl({ project, index }: FreelanceCardProps) {
               {project.budget ?? 'Not listed'}
             </p>
           </div>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-panel-2 text-fg transition-all duration-300 group-hover:bg-lime group-hover:text-ink">
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </span>
+          <div className="flex items-center gap-2">
+            {/* Shares point at this project's own UnifiedGig page. */}
+            <ShareMenu
+              url={buildShareUrl('freelance', project.id)}
+              title={project.title}
+              label={`Share project: ${project.title}`}
+            />
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-panel-2 text-fg transition-all duration-300 group-hover:bg-lime group-hover:text-ink">
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </span>
+          </div>
         </div>
       </div>
     </motion.article>

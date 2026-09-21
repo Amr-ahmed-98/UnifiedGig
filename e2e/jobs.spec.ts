@@ -53,4 +53,26 @@ test.describe('Jobs page', () => {
         const firstJob = mockJobs[0]
         await expect(page.getByRole('link', { name: firstJob.title })).toHaveAttribute('href', firstJob.url)
     })
+
+    test('share menu offers social targets and copies the job link', async ({ page }) => {
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+        const firstJob = mockJobs[0]
+        await page
+            .getByRole('button', { name: `Share job: ${firstJob.title}` })
+            .first()
+            .click()
+
+        const menu = page.getByRole('menu')
+        await expect(menu).toBeVisible()
+        await expect(menu.getByRole('menuitem', { name: 'Share via LinkedIn' })).toHaveAttribute(
+            'href',
+            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(firstJob.url)}`
+        )
+        await expect(menu.getByRole('menuitem', { name: 'Share via WhatsApp' })).toBeVisible()
+        await expect(menu.getByRole('menuitem', { name: 'Share via Facebook' })).toBeVisible()
+        await expect(menu.getByRole('menuitem', { name: 'Share via X' })).toBeVisible()
+
+        await menu.getByRole('menuitem', { name: 'Copy link' }).click()
+        await expect(page.getByText('Copied!')).toBeVisible()
+    })
 })

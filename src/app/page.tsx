@@ -176,6 +176,59 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section aria-label="What is UnifiedGig" className="relative px-5 py-20 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <p className="font-[var(--font-mono)] text-[11px] uppercase tracking-[0.2em] text-coral-text">
+            What is UnifiedGig?
+          </p>
+          <h2 className="mt-3 max-w-4xl font-[var(--font-display)] text-3xl font-bold leading-[1.05] text-fg sm:text-5xl">
+            The job search engine for <span className="text-lime-text">jobs</span>, gigs and{' '}
+            <span className="text-coral-text">freelance projects</span>.
+          </h2>
+          <div className="mt-8 grid gap-8 text-base leading-relaxed text-fg/65 lg:grid-cols-2">
+            <p>
+              UnifiedGig — also typed as <em>unified gig</em> or <em>unifiedgig</em> — is a free job
+              search aggregator that merges every job post, vacancy and freelance project into one
+              searchable feed. Instead of tab-hopping between LinkedIn jobs, Indeed, Glassdoor,
+              Wuzzuf and Tanqeeb for salaried roles, or Freelancer, Mostaql and Nafezly for
+              freelance gigs and remote work, you get one ruthlessly organized feed — deduped,
+              tagged by work mode, ranked by freshness, and refreshed every 30 minutes.
+            </p>
+            <p lang="ar" dir="rtl">
+              منصة UnifiedGig هي محرك بحث يجمع الوظائف الشاغرة وفرص العمل ومشاريع الفريلانس في مكان
+              واحد. سواء كنت تبحث عن وظائف عن بعد أو دوام كامل في مصر والخليج، أو مشاريع عمل حر
+              وأعمال فريلانس بأجر ثابت أو بالساعة، ستجلها كلها هنا محدثة كل نصف ساعة — مع إمكانية
+              البحث والتصفية حسب طريقة العمل وموقع الوظيفة ومصدر الإعلان.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            <p className="font-[var(--font-mono)] text-[11px] uppercase tracking-[0.2em] text-fg/60">
+              Popular searches
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                { label: 'Remote jobs', href: '/jobs?q=remote' },
+                { label: 'Developer jobs', href: '/jobs?q=developer' },
+                { label: 'Marketing jobs', href: '/jobs?q=marketing' },
+                { label: 'Design gigs', href: '/freelance?q=design' },
+                { label: 'React projects', href: '/freelance?q=react' },
+                { label: 'وظائف عن بعد', href: '/jobs?q=remote' },
+              ].map((s) => (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  data-cursor-hover
+                  className="rounded-full border border-edge/15 bg-panel/60 px-4 py-2 text-sm font-semibold text-fg/70 transition-colors hover:border-lime/50 hover:text-fg"
+                >
+                  {s.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="relative px-5 pb-24 sm:px-8">
         <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2.5rem] border border-edge/10 bg-panel-2 px-7 py-16 text-center sm:px-12">
           <MeshBackground variant="shapes" intensity="soft" />
@@ -200,6 +253,9 @@ export default function LandingPage() {
       <footer className="border-t border-edge/10 px-5 py-10 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-fg/60 sm:flex-row">
           <p className="font-[var(--font-display)] font-bold text-fg/70">Unified<span className="text-lime-text">Gig</span></p>
+          <p className="text-center sm:text-right">
+            Job search &amp; freelance projects aggregator — وظائف ومشاريع فريلانس في مكان واحد.
+          </p>
           <p>© 2026 UnifiedGig. Aggregated with care.</p>
         </div>
       </footer>
