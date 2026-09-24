@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test'
 import { mockApi, mockJobs } from './fixtures'
+import { buildShareUrl } from '../src/lib/site'
 
 test.describe('Jobs page', () => {
     test.beforeEach(async ({ page }) => {
         await mockApi(page)
         await page.goto('/jobs')
+        // The "N roles" header only renders once the client bundle has
+        // hydrated and the first fetch resolved. Typing into the search box
+        // before that loses the input event on slow engines (WebKit in dev).
+        await expect(page.getByText(`${mockJobs.length} roles`)).toBeVisible()
     })
 
     test('lists all mocked jobs by default', async ({ page }) => {
@@ -55,7 +60,11 @@ test.describe('Jobs page', () => {
     })
 
     test('share menu offers social targets and copies the job link', async ({ page }) => {
-        await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+        // Clipboard permission grants are Chromium-only; Firefox/WebKit
+        // throw "Unknown permission" and rely on user activation instead.
+        if (page.context().browser()?.browserType().name() === 'chromium') {
+            await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+        }
         const firstJob = mockJobs[0]
         await page
             .getByRole('button', { name: `Share job: ${firstJob.title}` })
@@ -66,7 +75,7 @@ test.describe('Jobs page', () => {
         await expect(menu).toBeVisible()
         await expect(menu.getByRole('menuitem', { name: 'Share via LinkedIn' })).toHaveAttribute(
             'href',
-            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(firstJob.url)}`
+            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildShareUrl('job', firstJob.id))}`
         )
         await expect(menu.getByRole('menuitem', { name: 'Share via WhatsApp' })).toBeVisible()
         await expect(menu.getByRole('menuitem', { name: 'Share via Facebook' })).toBeVisible()

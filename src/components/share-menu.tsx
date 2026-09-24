@@ -31,6 +31,12 @@ export function ShareMenu({ url, title, subtitle = null, label = 'Share' }: Shar
     const triggerRef = useRef<HTMLButtonElement>(null)
     const menuRef = useRef<HTMLDivElement>(null)
     const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+    // Viewport rect of the trigger captured when the menu opened. Browsers
+    // dispatch `scroll` events asynchronously, so a programmatic
+    // scrollIntoViewIfNeeded right before the click can land its scroll event
+    // *after* the menu is already open and instantly close it. A real scroll
+    // moves the trigger's viewport rect; a stale event does not.
+    const anchorAtOpen = useRef<{ top: number; left: number } | null>(null)
     const menuId = useId()
 
     const text = subtitle ? `${title} — ${subtitle}` : title
@@ -42,6 +48,7 @@ export function ShareMenu({ url, title, subtitle = null, label = 'Share' }: Shar
     const toggle = () => {
         if (!open && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect()
+            anchorAtOpen.current = { top: rect.top, left: rect.left }
             const wouldOverflow = rect.bottom + 8 + MENU_HEIGHT > window.innerHeight
             const top = wouldOverflow ? Math.max(8, rect.top - MENU_HEIGHT - 8) : rect.bottom + 8
             const left = Math.max(8, Math.min(rect.right - MENU_WIDTH, window.innerWidth - MENU_WIDTH - 8))
@@ -61,13 +68,27 @@ export function ShareMenu({ url, title, subtitle = null, label = 'Share' }: Shar
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setOpen(false)
         }
+        const onScroll = () => {
+            const anchor = anchorAtOpen.current
+            const trigger = triggerRef.current
+            if (anchor && trigger) {
+                const rect = trigger.getBoundingClientRect()
+                if (Math.abs(rect.top - anchor.top) < 1 && Math.abs(rect.left - anchor.left) < 1) {
+                    // Stale scroll event from before the menu opened — the
+                    // trigger has not moved, so the fixed menu is still
+                    // anchored correctly. Keep the menu open.
+                    return
+                }
+            }
+            setOpen(false)
+        }
         const close = () => setOpen(false)
         document.addEventListener('pointerdown', onPointerDown)
         document.addEventListener('keydown', onKey)
         window.addEventListener('resize', close)
         // capture: scrolling any scrollable ancestor (the card lists) should
         // also dismiss the menu instead of letting it float out of place.
-        window.addEventListener('scroll', close, true)
+        window.addEventListener('scroll', onScroll, true)
         return () => {
             document.removeEventListener('pointerdown', onPointerDown)
             document.removeEventListener('keydown', onKey)

@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test'
 import { mockApi, mockProjects } from './fixtures'
+import { buildShareUrl } from '../src/lib/site'
 
 test.describe('Freelance page', () => {
     test.beforeEach(async ({ page }) => {
         await mockApi(page)
         await page.goto('/freelance')
+        // The "N projects" header only renders once the client bundle has
+        // hydrated and the first fetch resolved. Typing into the search box
+        // before that loses the input event on slow engines (WebKit in dev).
+        await expect(page.getByText(`${mockProjects.length} projects`)).toBeVisible()
     })
 
     test('lists all mocked projects by default', async ({ page }) => {
@@ -39,7 +44,11 @@ test.describe('Freelance page', () => {
     })
 
     test('share menu offers social targets and copies the project link', async ({ page }) => {
-        await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+        // Clipboard permission grants are Chromium-only; Firefox/WebKit
+        // throw "Unknown permission" and rely on user activation instead.
+        if (page.context().browser()?.browserType().name() === 'chromium') {
+            await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+        }
         const firstProject = mockProjects[0]
         await page
             .getByRole('button', { name: `Share project: ${firstProject.title}` })
@@ -50,7 +59,7 @@ test.describe('Freelance page', () => {
         await expect(menu).toBeVisible()
         await expect(menu.getByRole('menuitem', { name: 'Share via LinkedIn' })).toHaveAttribute(
             'href',
-            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(firstProject.url)}`
+            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildShareUrl('freelance', firstProject.id))}`
         )
         await expect(menu.getByRole('menuitem', { name: 'Share via WhatsApp' })).toBeVisible()
         await expect(menu.getByRole('menuitem', { name: 'Share via Facebook' })).toBeVisible()
