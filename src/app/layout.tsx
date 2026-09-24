@@ -1,10 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { CustomCursor } from "@/components/custom-cursor"
 import { PageTransition } from "@/components/page-transition"
 import { NavBar } from "@/components/navbar"
+import { PWARegister } from "@/components/pwa-register"
+import { InstallPrompt } from "@/components/install-prompt"
 import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site";
 
@@ -133,7 +135,20 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "UnifiedGig",
+  },
 };
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0A0616" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F2E9" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -143,6 +158,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${display.variable} ${mono.variable} h-full antialiased`}>
       <head>
         <meta name="google-site-verification" content="xiDI7BBGZ3IxVMHVxA2gwvyWOYfFKbiszva65owsB1k" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -199,7 +215,9 @@ export default function RootLayout({
           <CustomCursor />
           <NavBar />
           <PageTransition>{children}</PageTransition>
+          <InstallPrompt />
         </ThemeProvider>
+        <PWARegister />
         <Analytics />
       </body>
     </html>
