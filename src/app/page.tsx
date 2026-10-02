@@ -6,6 +6,7 @@ import { motion } from 'motion/react'
 import { ArrowRight, Briefcase, Palette, Sparkles, Zap } from 'lucide-react'
 import { MeshBackground } from '@/components/mesh-background'
 import { AnimatedCounter } from '@/components/animated-counter'
+import { ComingSoonModal } from '@/components/coming-soon-modal'
 import { sources } from '@/data/sources'
 
 interface StatsData {
@@ -65,6 +66,7 @@ export default function LandingPage() {
 
   return (
     <main className="relative w-full overflow-hidden bg-canvas">
+      <ComingSoonModal />
       <section className="relative isolate min-h-[88vh] px-5 pb-24 pt-16 sm:px-8 sm:pt-24">
         <MeshBackground variant="mesh" />
 
