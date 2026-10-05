@@ -10,6 +10,7 @@ export interface Job {
     description: string | null
     url: string
     source: string
+    createdAt?: string | null
 }
 
 export type WorkMode = 'remote' | 'hybrid' | 'onsite'

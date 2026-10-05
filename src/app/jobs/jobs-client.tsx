@@ -9,6 +9,7 @@ import { FilterSection, EmptyState } from '@/components/filter-section'
 import { JobCard } from '@/components/job-card'
 import { SkeletonList } from '@/components/card-skeleton'
 import { MeshBackground } from '@/components/mesh-background'
+import { NewSection, isNew } from '@/components/pin-ui'
 import { jobSources } from '@/data/sources'
 import type { Job, WorkMode } from '@/types/job'
 import { workModeOf } from '@/types/job'
@@ -133,6 +134,13 @@ function JobsClient() {
     })
   }, [jobs, modes])
 
+  // Auto-split: items scraped within the last 24h float to the top
+  const { newJobs, restJobs } = useMemo(() => {
+    const newItems = results.filter((j) => isNew(j.createdAt))
+    const rest = results.filter((j) => !isNew(j.createdAt))
+    return { newJobs: newItems, restJobs: rest }
+  }, [results])
+
   const reset = () => {
     setQuery('')
     setLocation('')
@@ -176,7 +184,7 @@ function JobsClient() {
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          placeholder="City, or “anywhere”"
+          placeholder={'City, or "anywhere"'}
           className="w-full rounded-full bg-panel-2/60 px-4 py-3 text-sm text-fg shadow-[inset_0_0_0_1px_rgba(10,6,22,0.10)] outline-none transition-shadow duration-300 placeholder:text-fg/60 focus:shadow-[0_0_0_2px_#CCFF00]"
         />
       </div>
@@ -257,11 +265,22 @@ function JobsClient() {
             <EmptyState onReset={reset} />
           ) : (
             <>
+              {/* Auto-pinned: jobs added in the last 24 h */}
+              <NewSection count={newJobs.length}>
+                <div className="space-y-4">
+                  {newJobs.map((job, i) => (
+                    <JobCard key={job.id} job={job} index={i} />
+                  ))}
+                </div>
+              </NewSection>
+
+              {/* Rest of the feed */}
               <div className="space-y-4">
-                {results.map((job, i) => (
+                {restJobs.map((job, i) => (
                   <JobCard key={job.id} job={job} index={i} />
                 ))}
               </div>
+
               {jobs.length < total && (
                 <button
                   type="button"

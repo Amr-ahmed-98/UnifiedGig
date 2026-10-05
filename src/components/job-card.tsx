@@ -8,6 +8,7 @@ import { workModeOf } from '@/types/job'
 import { sourceMap } from '@/data/sources'
 import { ShareMenu } from '@/components/share-menu'
 import { buildShareUrl } from '@/lib/site'
+import { isNew } from '@/components/pin-ui'
 
 const modeStyles = {
   remote: { label: 'Remote', color: '#CCFF00' },
@@ -49,6 +50,7 @@ function JobCardImpl({ job, index }: JobCardProps) {
   const mode = modeStyles[workModeOf(job)]
   const initials = companyInitials(job.company)
   const color = companyColor(job.company)
+  const fresh = isNew(job.createdAt)
 
   return (
     <motion.article
@@ -64,6 +66,15 @@ function JobCardImpl({ job, index }: JobCardProps) {
         className="absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{ background: `linear-gradient(120deg, ${source.color}, transparent 55%, ${mode.color})` }}
       />
+
+      {/* Subtle lime glow on new items */}
+      {fresh && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-3xl opacity-30"
+          style={{ background: 'linear-gradient(120deg, #CCFF0020, transparent 60%)' }}
+        />
+      )}
 
       <div className="relative flex gap-0 rounded-[calc(1.5rem-1px)] bg-panel">
         <span
@@ -108,6 +119,11 @@ function JobCardImpl({ job, index }: JobCardProps) {
             >
               {mode.label}
             </span>
+            {fresh && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-lime/30 bg-lime/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-lime-text">
+                ⚡ New
+              </span>
+            )}
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-edge/10 pt-4 text-xs text-fg/60">

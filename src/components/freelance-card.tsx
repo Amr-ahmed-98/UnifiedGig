@@ -8,6 +8,7 @@ import { deadlineDays } from '@/types/freelance'
 import { sourceMap } from '@/data/sources'
 import { ShareMenu } from '@/components/share-menu'
 import { buildShareUrl } from '@/lib/site'
+import { isNew } from '@/components/pin-ui'
 
 const skillColors = ['#CCFF00', '#22E0D6', '#FF5C38', '#8B5CF6']
 
@@ -26,6 +27,7 @@ interface FreelanceCardProps {
 function FreelanceCardImpl({ project, index }: FreelanceCardProps) {
   const source = sourceMap[project.source] ?? { name: project.source, color: '#8B5CF6' }
   const due = urgency(deadlineDays(project.deadline))
+  const fresh = isNew(project.createdAt)
 
   return (
     <motion.article
@@ -42,11 +44,25 @@ function FreelanceCardImpl({ project, index }: FreelanceCardProps) {
         style={{ background: `linear-gradient(140deg, ${source.color}, transparent 60%, ${due.color})` }}
       />
 
+      {/* Subtle lime glow on new items */}
+      {fresh && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-3xl opacity-30"
+          style={{ background: 'linear-gradient(140deg, #CCFF0020, transparent 60%)' }}
+        />
+      )}
+
       <div className="relative flex h-full flex-col rounded-[calc(1.5rem-1px)] bg-panel p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <p className="inline-flex items-center gap-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-wider text-fg/60">
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: source.color }} aria-hidden="true" />
             {source.name}
+            {fresh && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-lime/30 bg-lime/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-lime-text">
+                ⚡ New
+              </span>
+            )}
           </p>
 
           <span

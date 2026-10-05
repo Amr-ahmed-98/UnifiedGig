@@ -30,6 +30,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'React, TypeScript and design-system work on a large-scale fintech dashboard.',
         url: 'https://example.com/jobs/senior-frontend-engineer-nile-digital',
         source: 'wuzzuf',
+        createdAt: hoursAgo(3),
     },
     {
         id: 'demo-job-2',
@@ -43,6 +44,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'Build distributed services in Node.js and PostgreSQL for a cloud cost platform.',
         url: 'https://example.com/jobs/remote-backend-developer-sahara-cloud',
         source: 'linkedin',
+        createdAt: hoursAgo(7),
     },
     {
         id: 'demo-job-3',
@@ -56,6 +58,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'SQL, dashboards and stakeholder reporting for retail clients.',
         url: 'https://example.com/jobs/data-analyst-pyramid-analytics',
         source: 'indeed',
+        createdAt: daysAgo(2),
     },
     {
         id: 'demo-job-4',
@@ -69,6 +72,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'Own end-to-end product design for a B2B SaaS suite.',
         url: 'https://example.com/jobs/product-designer-delta-labs',
         source: 'glassdoor',
+        createdAt: daysAgo(2),
     },
     {
         id: 'demo-job-5',
@@ -82,6 +86,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'Kubernetes, CI/CD pipelines and observability for e-commerce infrastructure.',
         url: 'https://example.com/jobs/devops-engineer-alexandria-systems',
         source: 'tanqeeb',
+        createdAt: daysAgo(2),
     },
     {
         id: 'demo-job-6',
@@ -95,6 +100,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'Performance marketing across social channels for regional brands.',
         url: 'https://example.com/jobs/marketing-specialist-cairo-creatives',
         source: 'wuzzuf',
+        createdAt: daysAgo(3),
     },
     {
         id: 'demo-job-7',
@@ -108,6 +114,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'Next.js + Node.js product team, shipping weekly.',
         url: 'https://example.com/jobs/full-stack-engineer-gulfware',
         source: 'linkedin',
+        createdAt: daysAgo(4),
     },
     {
         id: 'demo-job-8',
@@ -121,6 +128,7 @@ export const DEMO_JOBS: Job[] = [
         description: 'Playwright test suites for a logistics platform.',
         url: 'https://example.com/jobs/qa-automation-engineer-quantum-apps',
         source: 'indeed',
+        createdAt: daysAgo(5),
     },
 ]
 
@@ -134,6 +142,7 @@ export const DEMO_PROJECTS: FreelanceProject[] = [
         description: 'One-page marketing site with subtle animations, deployed on Vercel.',
         url: 'https://example.com/freelance/landing-page-nextjs',
         source: 'freelancer',
+        createdAt: hoursAgo(4),
     },
     {
         id: 'demo-proj-2',
@@ -144,6 +153,7 @@ export const DEMO_PROJECTS: FreelanceProject[] = [
         description: 'متجر إلكتروني لبيع الملابس مع بوابات دفع مصرية وشحن تلقائي.',
         url: 'https://example.com/freelance/ecommerce-store-arabic',
         source: 'mostaql',
+        createdAt: hoursAgo(9),
     },
     {
         id: 'demo-proj-3',
@@ -154,6 +164,7 @@ export const DEMO_PROJECTS: FreelanceProject[] = [
         description: 'Debug and patch a token-bucket edge case causing 429s for legit traffic.',
         url: 'https://example.com/freelance/api-rate-limit-bug',
         source: 'freelancer',
+        createdAt: daysAgo(2),
     },
     {
         id: 'demo-proj-4',
@@ -164,6 +175,7 @@ export const DEMO_PROJECTS: FreelanceProject[] = [
         description: 'عشر مقالات محسنة لمحركات البحث حول الاستضافة والسحابة.',
         url: 'https://example.com/freelance/seo-content-arabic',
         source: 'nafezly',
+        createdAt: daysAgo(3),
     },
     {
         id: 'demo-proj-5',
@@ -174,6 +186,7 @@ export const DEMO_PROJECTS: FreelanceProject[] = [
         description: 'Smooth out transitions and gestures in a fitness tracking app.',
         url: 'https://example.com/freelance/react-native-ui-polish',
         source: 'freelancer',
+        createdAt: daysAgo(4),
     },
     {
         id: 'demo-proj-6',
@@ -184,6 +197,7 @@ export const DEMO_PROJECTS: FreelanceProject[] = [
         description: 'لوحة تحكم لعرض الفواتير والتقارير الشهرية مع تصدير Excel.',
         url: 'https://example.com/freelance/invoices-dashboard',
         source: 'mostaql',
+        createdAt: daysAgo(5),
     },
 ]
 

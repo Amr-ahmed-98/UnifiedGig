@@ -9,6 +9,7 @@ import { FilterSection, EmptyState } from '@/components/filter-section'
 import { FreelanceCard } from '@/components/freelance-card'
 import { SkeletonList } from '@/components/card-skeleton'
 import { MeshBackground } from '@/components/mesh-background'
+import { NewSection, isNew } from '@/components/pin-ui'
 import { freelanceSources } from '@/data/sources'
 import type { FreelanceProject } from '@/types/freelance'
 
@@ -123,6 +124,13 @@ function FreelanceClient() {
     })
   }, [projects, skills])
 
+  // Auto-split: projects scraped within the last 24h float to the top
+  const { newProjects, restProjects } = useMemo(() => {
+    const newItems = results.filter((p) => isNew(p.createdAt))
+    const rest = results.filter((p) => !isNew(p.createdAt))
+    return { newProjects: newItems, restProjects: rest }
+  }, [results])
+
   const reset = () => {
     setQuery('')
     setSkills([])
@@ -234,11 +242,22 @@ function FreelanceClient() {
             <EmptyState onReset={reset} />
           ) : (
             <>
+              {/* Auto-pinned: projects added in the last 24 h */}
+              <NewSection count={newProjects.length}>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {newProjects.map((project, i) => (
+                    <FreelanceCard key={project.id} project={project} index={i} />
+                  ))}
+                </div>
+              </NewSection>
+
+              {/* Rest of the feed */}
               <div className="grid gap-4 xl:grid-cols-2">
-                {results.map((project, i) => (
+                {restProjects.map((project, i) => (
                   <FreelanceCard key={project.id} project={project} index={i} />
                 ))}
               </div>
+
               {projects.length < total && (
                 <button
                   type="button"

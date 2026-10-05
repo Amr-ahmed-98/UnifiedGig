@@ -7,6 +7,7 @@ export interface FreelanceProject {
     description: string | null
     url: string
     source: string
+    createdAt?: string | null
 }
 
 export function deadlineDays(deadline: string | null): number | null {
