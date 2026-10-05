@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'motion/react'
-import { Sparkles, X } from 'lucide-react'
+import { BookOpen, X } from 'lucide-react'
 
 export const COMING_SOON_SESSION_KEY = 'ug_coming_soon_dismissed_session'
-export const COMING_SOON_PERMANENT_KEY = 'ug_hide_coming_soon_permanently'
+export const COMING_SOON_PERMANENT_KEY = 'ug_hide_coming_soon_permanently_v2'
 
 interface ComingSoonModalProps {
   /** Optional override to force open/close for testing */
@@ -137,8 +138,8 @@ export function ComingSoonModal({ forceOpen, initialDelayMs = 400, onClose }: Co
             {/* Banner Image Container */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-black/20">
               <Image
-                src="/images/coming-soon.jpg"
-                alt="What's New on UnifiedGig: Mobile App, New Pages, and New Features Coming Soon"
+                src="/images/material-page.jpg"
+                alt="UnifiedGig Learn — a community-powered hub of courses, videos, books and articles for every tech field"
                 width={1376}
                 height={768}
                 priority
@@ -150,23 +151,23 @@ export function ComingSoonModal({ forceOpen, initialDelayMs = 400, onClose }: Co
             {/* Content Details */}
             <div className="relative px-6 pb-6 pt-2 sm:px-8 sm:pb-8 sm:pt-4">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-lime/30 bg-lime/10 px-3 py-1 font-[var(--font-mono)] text-[11px] font-semibold uppercase tracking-wider text-lime-text">
-                <Sparkles className="h-3.5 w-3.5 text-lime-text animate-pulse" />
-                Coming Soon
+                <BookOpen className="h-3.5 w-3.5 text-lime-text" />
+                New · Just Launched
               </div>
 
               <h2
                 id="coming-soon-title"
                 className="mt-3 font-[var(--font-display)] text-2xl font-bold tracking-tight text-fg sm:text-3xl"
               >
-                Exciting New Features Are Landing Soon!
+                The Learn page is live — explore &amp; contribute!
               </h2>
 
               <p
                 id="coming-soon-description"
                 className="mt-2 text-sm leading-relaxed text-fg/70 sm:text-base"
               >
-                We are crafting dedicated mobile apps, career learning materials, community Q&amp;A, and
-                smart AI prompts to give your job and freelance search superpowers.
+                We&apos;ve launched a community-powered learning hub packed with courses, videos, articles, books, and more — curated per field.
+                Found a great resource? Hit <strong className="text-fg font-semibold">Add material</strong> and share it with everyone.
               </p>
 
               {/* Action Buttons */}
@@ -181,15 +182,15 @@ export function ComingSoonModal({ forceOpen, initialDelayMs = 400, onClose }: Co
                   <span aria-hidden="true" className="text-base">🚫</span>
                 </button>
 
-                <button
-                  type="button"
+                <Link
+                  href="/materials"
                   onClick={handleGotYou}
                   data-cursor-hover
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-lime px-6 py-3 font-[var(--font-display)] text-sm font-bold text-ink shadow-lg shadow-lime/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lime/35 active:scale-[0.98] sm:w-auto"
                 >
-                  <span>Got you</span>
-                  <span aria-hidden="true" className="text-base">👍</span>
-                </button>
+                  <BookOpen className="h-4 w-4" />
+                  <span>Explore it now</span>
+                </Link>
               </div>
             </div>
           </motion.div>

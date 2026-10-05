@@ -1,0 +1,281 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { motion } from 'motion/react'
+import { ArrowLeft, Plus, SlidersHorizontal } from 'lucide-react'
+import { SearchBar } from '@/components/search-bar'
+import { FilterPill } from '@/components/filter-pill'
+import { FilterSection, EmptyState } from '@/components/filter-section'
+import { SkeletonList } from '@/components/card-skeleton'
+import { MeshBackground } from '@/components/mesh-background'
+import { MaterialCard } from '@/components/material-card'
+import { AddMaterialModal } from '@/components/add-material-modal'
+import { MATERIAL_TYPES, materialTypeMeta, type LearningMaterial, type MaterialType } from '@/types/material'
+import type { LearningField } from '@/data/fields'
+
+const PAGE_SIZE = 24
+
+function useDebouncedValue<T>(value: T, delayMs: number) {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(id)
+  }, [value, delayMs])
+  return debounced
+}
+
+interface ApiResult {
+  materials: LearningMaterial[]
+  total: number
+  counts?: { types: Record<string, number> }
+}
+
+function FieldClient({ field }: { field: LearningField }) {
+  const [materials, setMaterials] = useState<LearningMaterial[]>([])
+  const [total, setTotal] = useState(0)
+  const [typeCounts, setTypeCounts] = useState<Record<string, number>>({})
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [query, setQuery] = useState('')
+  const [types, setTypes] = useState<MaterialType[]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const debouncedQuery = useDebouncedValue(query, 300)
+
+  const buildParams = (skip: number) => {
+    const params = new URLSearchParams()
+    params.set('field', field.slug)
+    if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim())
+    if (types.length) params.set('type', types.join(','))
+    params.set('take', String(PAGE_SIZE))
+    params.set('skip', String(skip))
+    return params
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting loading state before refetching on filter change
+    setLoading(true)
+    setError(null)
+    fetch(`/api/materials?${buildParams(0)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load materials')
+        return res.json()
+      })
+      .then((data: ApiResult) => {
+        if (cancelled) return
+        setMaterials(data.materials || [])
+        setTotal(data.total)
+        setTypeCounts(data.counts?.types ?? {})
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load materials')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- buildParams is derived from the listed deps
+  }, [debouncedQuery, types, field.slug, refreshKey])
+
+  const loadMore = () => {
+    setLoadingMore(true)
+    fetch(`/api/materials?${buildParams(materials.length)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load materials')
+        return res.json()
+      })
+      .then((data: ApiResult) => {
+        setMaterials((prev) => {
+          const seen = new Set(prev.map((m) => m.id))
+          return [...prev, ...(data.materials || []).filter((m) => !seen.has(m.id))]
+        })
+        setTotal(data.total)
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load materials'))
+      .finally(() => setLoadingMore(false))
+  }
+
+  const toggleType = (t: MaterialType) =>
+    setTypes((prev) => (prev.includes(t) ? prev.filter((v) => v !== t) : [...prev, t]))
+
+  const reset = () => {
+    setQuery('')
+    setTypes([])
+  }
+
+  const sharedTotal = Object.values(typeCounts).reduce((a, b) => a + b, 0)
+  const hasFilters = types.length > 0 || query.trim().length > 0
+
+  const filterPanel = (
+    <div className="space-y-7 rounded-3xl border border-edge/10 bg-panel/70 p-6">
+      <FilterSection title="Type">
+        {MATERIAL_TYPES.map((t) => (
+          <FilterPill
+            key={t}
+            label={materialTypeMeta[t].label}
+            color={materialTypeMeta[t].color}
+            dot
+            count={typeCounts[t] ?? 0}
+            active={types.includes(t)}
+            onClick={() => toggleType(t)}
+          />
+        ))}
+      </FilterSection>
+
+      <button
+        type="button"
+        onClick={reset}
+        disabled={!hasFilters}
+        data-cursor-hover
+        className="w-full rounded-full border border-edge/15 py-2.5 text-sm font-semibold text-fg/70 transition-colors hover:border-coral hover:text-coral disabled:pointer-events-none disabled:opacity-40"
+      >
+        Clear all filters
+      </button>
+    </div>
+  )
+
+  return (
+    <main className="relative w-full bg-canvas pb-24">
+      <section className="relative isolate overflow-hidden border-b border-edge/10 px-5 pb-12 pt-10 sm:px-8">
+        <MeshBackground variant="mesh" intensity="soft" />
+        <div className="relative mx-auto max-w-6xl">
+          <Link
+            href="/materials"
+            data-cursor-hover
+            className="inline-flex items-center gap-2 font-[var(--font-mono)] text-xs text-fg/70 transition-colors hover:text-fg"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All fields
+          </Link>
+          <p className="mt-8 font-[var(--font-mono)] text-[11px] uppercase tracking-[0.2em] text-lime-text">
+            Materials · {sharedTotal} shared
+          </p>
+          <h1 className="mt-3 font-[var(--font-display)] text-4xl font-bold leading-[1.02] text-fg sm:text-6xl">
+            {field.name}
+          </h1>
+          <p className="mt-5 max-w-xl text-sm text-fg/70 sm:text-base">{field.blurb}</p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="min-w-0 flex-1">
+              <SearchBar
+                value={query}
+                onChange={setQuery}
+                label={`Search ${field.name} materials`}
+                placeholder="Search materials…"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              data-cursor-hover
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-lime px-7 py-4 text-sm font-bold text-ink transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              <Plus className="h-4 w-4" strokeWidth={3} />
+              Add material
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto mt-10 flex max-w-6xl flex-col gap-8 px-5 sm:px-8 lg:flex-row">
+        <div className="lg:hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            data-cursor-hover
+            className="inline-flex items-center gap-2 rounded-full bg-panel-2 px-5 py-3 text-sm font-bold text-fg ring-1 ring-inset ring-edge/10"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters{types.length > 0 && ` (${types.length})`}
+          </button>
+          {filtersOpen && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden pt-4">
+              {filterPanel}
+            </motion.div>
+          )}
+        </div>
+
+        <aside className="hidden w-72 shrink-0 lg:block">
+          <div className="sticky top-24">{filterPanel}</div>
+        </aside>
+
+        <section aria-label={`${field.name} materials`} className="min-w-0 flex-1">
+          <div className="mb-5 flex items-baseline justify-between gap-4">
+            <p className="font-[var(--font-display)] text-lg font-bold text-fg">
+              {loading ? 'Loading…' : `${total} ${total === 1 ? 'material' : 'materials'}`}
+            </p>
+            <p className="font-[var(--font-mono)] text-[11px] text-fg/60">Newest first</p>
+          </div>
+
+          {error && !loading && (
+            <div className="mb-4 rounded-3xl border border-coral/30 bg-coral/10 px-6 py-4 text-sm text-coral-text">{error}</div>
+          )}
+
+          {loading ? (
+            <SkeletonList count={4} />
+          ) : materials.length === 0 ? (
+            hasFilters ? (
+              <EmptyState onReset={reset} />
+            ) : (
+              <div className="rounded-3xl border border-dashed border-edge/15 bg-panel/50 px-6 py-16 text-center">
+                <p className="font-[var(--font-display)] text-2xl font-bold text-fg">Nothing here yet.</p>
+                <p className="mx-auto mt-2 max-w-sm text-sm text-fg/60">
+                  Be the first to share a link that helped you learn {field.name}.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setAddOpen(true)}
+                  data-cursor-hover
+                  className="mt-6 rounded-full bg-lime px-5 py-2.5 text-sm font-bold text-ink transition-transform duration-200 hover:-translate-y-0.5"
+                >
+                  Add material
+                </button>
+              </div>
+            )
+          ) : (
+            <>
+              <div className="space-y-4">
+                {materials.map((m, i) => (
+                  <MaterialCard key={m.id} material={m} index={i} />
+                ))}
+              </div>
+              {materials.length < total && (
+                <button
+                  type="button"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  data-cursor-hover
+                  className="mt-6 w-full rounded-full border border-edge/15 py-3 text-sm font-bold text-fg transition-colors hover:border-lime/50 disabled:opacity-60"
+                >
+                  {loadingMore ? 'Loading…' : 'Load more materials'}
+                </button>
+              )}
+            </>
+          )}
+        </section>
+      </div>
+
+      <AddMaterialModal
+        open={addOpen}
+        fieldSlug={field.slug}
+        fieldName={field.name}
+        onClose={() => setAddOpen(false)}
+        onAdded={() => {
+          reset()
+          setRefreshKey((k) => k + 1)
+        }}
+      />
+    </main>
+  )
+}
+
+export default FieldClient

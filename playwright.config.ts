@@ -27,6 +27,19 @@ export default defineConfig({
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
+        serviceWorkers: 'block',
+        storageState: {
+            cookies: [],
+            origins: [
+                {
+                    origin: baseURL,
+                    localStorage: [
+                        { name: 'ug_hide_coming_soon_permanently_v2', value: 'true' },
+                        { name: 'ug-install-dismissed-at', value: String(Date.now()) },
+                    ],
+                },
+            ],
+        },
     },
 
     projects: [
@@ -45,6 +58,7 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         env: {
+            DEMO_MODE: 'true',
             DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
         },
     },

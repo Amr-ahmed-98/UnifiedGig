@@ -68,3 +68,17 @@ model FreelanceProject {
   @@index([postedAt])
   @@index([isOpen])
 }
+
+model LearningMaterial {
+  id          String   @id @default(cuid())
+  field       String // slug from src/data/fields.ts, e.g. "software-engineering"
+  title       String
+  url         String
+  type        String // "course" | "video" | "article" | "docs" | "book" | "repo"
+  description String? // one-line "why it's useful"
+  createdAt   DateTime @default(now())
+
+  @@unique([field, url])
+  @@index([field, createdAt])
+  @@index([type])
+}

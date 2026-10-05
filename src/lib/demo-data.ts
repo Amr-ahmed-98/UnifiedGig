@@ -1,6 +1,7 @@
 import type { Job } from '@/types/job'
 import type { FreelanceProject } from '@/types/freelance'
 import type { SocialJobPost } from '@/types/socialJob'
+import type { LearningMaterial } from '@/types/material'
 
 /**
  * Bundled demo listings.
@@ -244,4 +245,16 @@ export const DEMO_SOCIAL_POSTS: SocialJobPost[] = [
         createdAt: daysAgo(1),
         expiresAt: inHours(5),
     },
+]
+
+export const DEMO_MATERIALS: LearningMaterial[] = [
+    { id: 'demo-mat-1', field: 'software-engineering', title: 'Backend Developer Roadmap', url: 'https://roadmap.sh/backend', type: 'docs', description: 'Step-by-step map of what to learn and in which order.', createdAt: daysAgo(3) },
+    { id: 'demo-mat-2', field: 'software-engineering', title: 'CS50x: Introduction to Computer Science', url: 'https://cs50.harvard.edu/x/', type: 'course', description: 'Free Harvard course — the best starting point for fundamentals.', createdAt: daysAgo(5) },
+    { id: 'demo-mat-3', field: 'software-engineering', title: 'The System Design Primer', url: 'https://github.com/donnemartin/system-design-primer', type: 'repo', description: 'Interview-focused system design notes with diagrams.', createdAt: daysAgo(8) },
+    { id: 'demo-mat-4', field: 'software-engineering', title: 'Refactoring Guru — Design Patterns', url: 'https://refactoring.guru/design-patterns', type: 'article', description: null, createdAt: daysAgo(12) },
+    { id: 'demo-mat-5', field: 'networking', title: 'Jeremy’s IT Lab — CCNA 200-301', url: 'https://www.youtube.com/@JeremysITLab', type: 'video', description: 'Free full CCNA course with labs.', createdAt: daysAgo(2) },
+    { id: 'demo-mat-6', field: 'networking', title: 'Subnetting Mastery', url: 'https://www.subnetting.org/', type: 'article', description: 'Practice subnetting until it is automatic.', createdAt: daysAgo(6) },
+    { id: 'demo-mat-7', field: 'cybersecurity', title: 'TryHackMe', url: 'https://tryhackme.com/', type: 'course', description: 'Guided hands-on labs for beginners.', createdAt: daysAgo(4) },
+    { id: 'demo-mat-8', field: 'data-science-ai', title: 'Kaggle Learn', url: 'https://www.kaggle.com/learn', type: 'course', description: 'Short practical micro-courses in Python, SQL and ML.', createdAt: daysAgo(7) },
+    { id: 'demo-mat-9', field: 'devops-cloud', title: 'Docker Docs — Get Started', url: 'https://docs.docker.com/get-started/', type: 'docs', description: null, createdAt: daysAgo(9) },
 ]

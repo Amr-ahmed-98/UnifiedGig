@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import type { Job } from '../src/types/job'
 import type { FreelanceProject } from '../src/types/freelance'
 import type { SocialJobPost } from '../src/types/socialJob'
+import type { LearningMaterial } from '../src/types/material'
 
 export const mockJobs: Job[] = [
     {
@@ -241,5 +242,81 @@ export async function mockSocialApi(page: Page, options: { posts?: SocialJobPost
         }
 
         await route.fulfill({ json: {} })
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Learning materials
+// ---------------------------------------------------------------------------
+
+const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
+
+export const mockMaterials: LearningMaterial[] = [
+    { id: 'mat-1', field: 'software-engineering', title: 'Backend Developer Roadmap', url: 'https://roadmap.sh/backend', type: 'docs', description: 'Step-by-step map of what to learn and in which order.', createdAt: daysAgo(3) },
+    { id: 'mat-2', field: 'software-engineering', title: 'CS50x: Introduction to Computer Science', url: 'https://cs50.harvard.edu/x/', type: 'course', description: 'Free Harvard course — the best starting point for fundamentals.', createdAt: daysAgo(5) },
+    { id: 'mat-3', field: 'software-engineering', title: 'The System Design Primer', url: 'https://github.com/donnemartin/system-design-primer', type: 'repo', description: 'Interview-focused system design notes with diagrams.', createdAt: daysAgo(8) },
+    { id: 'mat-4', field: 'software-engineering', title: 'Refactoring Guru — Design Patterns', url: 'https://refactoring.guru/design-patterns', type: 'article', description: null, createdAt: daysAgo(12) },
+    { id: 'mat-5', field: 'networking', title: 'Jeremy’s IT Lab CCNA', url: 'https://www.youtube.com/@JeremysITLab', type: 'video', description: 'Free full CCNA course with labs.', createdAt: daysAgo(2) },
+    { id: 'mat-6', field: 'networking', title: 'Subnetting Practice', url: 'https://www.subnetting.org/', type: 'article', description: null, createdAt: daysAgo(6) },
+    { id: 'mat-7', field: 'cybersecurity', title: 'TryHackMe', url: 'https://tryhackme.com/', type: 'course', description: 'Guided hands-on labs for beginners.', createdAt: daysAgo(4) },
+]
+
+interface MaterialsApiOptions {
+    materials?: LearningMaterial[]
+    /** When set, POST /api/materials fails with this status + message */
+    failPost?: { status: number; error: string }
+}
+
+/**
+ * Stateful mock of /api/materials: GET filters/paginates the in-memory list and
+ * computes counts like the real route; POST prepends the new material so the
+ * add-then-refetch flow behaves end to end.
+ */
+export async function mockMaterialsApi(page: Page, options: MaterialsApiOptions = {}) {
+    const store: LearningMaterial[] = [...(options.materials ?? mockMaterials)]
+
+    await page.route('**/api/materials**', async (route) => {
+        const request = route.request()
+        const url = new URL(request.url())
+
+        if (request.method() === 'POST') {
+            if (options.failPost) {
+                await route.fulfill({ status: options.failPost.status, json: { error: options.failPost.error } })
+                return
+            }
+            const body = request.postDataJSON() as Omit<LearningMaterial, 'id' | 'createdAt'>
+            const material: LearningMaterial = {
+                ...body,
+                description: body.description ?? null,
+                id: `mat-new-${store.length + 1}`,
+                createdAt: new Date().toISOString(),
+            }
+            store.unshift(material)
+            await route.fulfill({ status: 201, json: { material } })
+            return
+        }
+
+        const field = url.searchParams.get('field')
+        const q = url.searchParams.get('q')?.toLowerCase()
+        const types = (url.searchParams.get('type') ?? '').split(',').filter(Boolean)
+        const skip = Number(url.searchParams.get('skip') ?? '0')
+        const take = Number(url.searchParams.get('take') ?? '24')
+
+        const inField = store.filter((m) => !field || m.field === field)
+        const matched = inField
+            .filter((m) => types.length === 0 || types.includes(m.type))
+            .filter((m) => !q || m.title.toLowerCase().includes(q) || (m.description ?? '').toLowerCase().includes(q))
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+        const count = (rows: LearningMaterial[], key: 'field' | 'type') =>
+            rows.reduce<Record<string, number>>((acc, m) => ({ ...acc, [m[key]]: (acc[m[key]] ?? 0) + 1 }), {})
+
+        await route.fulfill({
+            json: {
+                materials: matched.slice(skip, skip + take),
+                total: matched.length,
+                counts: { fields: count(store, 'field'), types: count(inField, 'type') },
+            },
+        })
     })
 }

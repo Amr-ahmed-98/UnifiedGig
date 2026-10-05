@@ -12,6 +12,7 @@ const links = [
   { to: '/jobs', label: 'Jobs' },
   { to: '/freelance', label: 'Freelance' },
   { to: '/social-jobs', label: 'Social' },
+  { to: '/materials', label: 'Learn' },
 ]
 
 export function NavBar() {
@@ -35,7 +36,7 @@ export function NavBar() {
 
         <div className="hidden items-center gap-1 md:flex">
           {links.map((l) => {
-            const active = pathname === l.to
+            const active = l.to === '/' ? pathname === '/' : pathname === l.to || pathname.startsWith(l.to + '/')
             return (
               <Link
                 key={l.to}

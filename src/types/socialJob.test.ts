@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
     detectTags,
     expiryLabel,
@@ -6,6 +6,14 @@ import {
     SOCIAL_JOB_TAGS,
     SOCIAL_JOB_TTL_HOURS,
 } from './socialJob'
+
+beforeEach(() => {
+    vi.useFakeTimers()
+})
+
+afterEach(() => {
+    vi.useRealTimers()
+})
 
 describe('SOCIAL_JOB_TAGS', () => {
     it('keeps the 48h TTL contract stable — the whole feature depends on it', () => {
@@ -152,9 +160,9 @@ describe('expiryLabel', () => {
     })
 
     it('switches label wording at the day boundary (< 24h vs >= 24h)', () => {
-        const justUnder = new Date(Date.now() + 23 * 3_600_000 + 30 * 60_000).toISOString() // 23.5h
-        const justOver = new Date(Date.now() + 24 * 3_600_000 + 30 * 60_000).toISOString() // 24.5h
-        expect(expiryLabel(justUnder)).toBe('24h left') // 23.5 rounds to 24
+        const justUnder = new Date(Date.now() + 23 * 3_600_000 + 45 * 60_000).toISOString() // 23h 45m (< 24h, rounds to 24h)
+        const justOver = new Date(Date.now() + 24 * 3_600_000 + 30 * 60_000).toISOString() // 24.5h (>= 24h, rounds to 1d)
+        expect(expiryLabel(justUnder)).toBe('24h left')
         expect(expiryLabel(justOver)).toBe('1d left')
     })
 })
