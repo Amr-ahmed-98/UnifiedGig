@@ -13,6 +13,7 @@ const links = [
   { to: '/freelance', label: 'Freelance' },
   { to: '/social-jobs', label: 'Social' },
   { to: '/materials', label: 'Learn' },
+  { to: '/people', label: 'People' },
 ]
 
 export function NavBar() {
@@ -42,7 +43,7 @@ export function NavBar() {
                 key={l.to}
                 href={l.to}
                 data-cursor-hover
-                className={`relative rounded-full px-4 py-2 text-sm font-semibold transition-colors ${active ? 'text-ink' : 'text-fg/70 hover:text-fg'}`}
+                className={`relative rounded-full px-3 py-2 text-sm lg:px-4 font-semibold transition-colors ${active ? 'text-ink' : 'text-fg/70 hover:text-fg'}`}
               >
                 {active && (
                   <motion.span

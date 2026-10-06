@@ -14,6 +14,7 @@ describe('NavBar', () => {
         expect(screen.getByRole('link', { name: 'Jobs' })).toHaveAttribute('href', '/jobs')
         expect(screen.getByRole('link', { name: 'Freelance' })).toHaveAttribute('href', '/freelance')
         expect(screen.getByRole('link', { name: 'Social' })).toHaveAttribute('href', '/social-jobs')
+        expect(screen.getByRole('link', { name: 'People' })).toHaveAttribute('href', '/people')
     })
 
     it('keeps the mobile menu closed by default', () => {

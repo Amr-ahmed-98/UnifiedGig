@@ -2,6 +2,7 @@ import type { Job } from '@/types/job'
 import type { FreelanceProject } from '@/types/freelance'
 import type { SocialJobPost } from '@/types/socialJob'
 import type { LearningMaterial } from '@/types/material'
+import type { FollowProfile } from '@/types/profile'
 
 /**
  * Bundled demo listings.
@@ -271,4 +272,15 @@ export const DEMO_MATERIALS: LearningMaterial[] = [
     { id: 'demo-mat-7', field: 'cybersecurity', title: 'TryHackMe', url: 'https://tryhackme.com/', type: 'course', description: 'Guided hands-on labs for beginners.', createdAt: daysAgo(4) },
     { id: 'demo-mat-8', field: 'data-science-ai', title: 'Kaggle Learn', url: 'https://www.kaggle.com/learn', type: 'course', description: 'Short practical micro-courses in Python, SQL and ML.', createdAt: daysAgo(7) },
     { id: 'demo-mat-9', field: 'devops-cloud', title: 'Docker Docs — Get Started', url: 'https://docs.docker.com/get-started/', type: 'docs', description: null, createdAt: daysAgo(9) },
+]
+
+export const DEMO_PROFILES: FollowProfile[] = [
+    { id: 'demo-prof-1', platform: 'linkedin', name: 'Mariam Adel', url: 'https://linkedin.com/in/mariam-adel-demo', headline: 'Senior Tech Recruiter · Fintech', postsAbout: 'Backend, mobile and QA roles in Cairo and remote', createdAt: daysAgo(1) },
+    { id: 'demo-prof-2', platform: 'linkedin', name: 'Omar Khaled', url: 'https://linkedin.com/in/omar-khaled-demo', headline: 'Talent Acquisition Lead · Telecom', postsAbout: 'Network engineers, NOC and cloud support', createdAt: daysAgo(2) },
+    { id: 'demo-prof-3', platform: 'facebook', name: 'Egypt Remote Jobs', url: 'https://facebook.com/groups/egypt-remote-jobs-demo', headline: 'Community group · 120k members', postsAbout: 'Daily remote openings for MENA candidates', createdAt: daysAgo(3) },
+    { id: 'demo-prof-4', platform: 'linkedin', name: 'Nour Hassan', url: 'https://linkedin.com/in/nour-hassan-demo', headline: 'HR Business Partner · E-commerce', postsAbout: 'Internships and graduate programmes', createdAt: daysAgo(4) },
+    { id: 'demo-prof-5', platform: 'telegram', name: 'Freelance Devs MENA', url: 'https://t.me/freelance_devs_mena_demo', headline: 'Channel · project leads & gigs', postsAbout: 'Short freelance web and app projects', createdAt: daysAgo(5) },
+    { id: 'demo-prof-6', platform: 'x', name: 'Youssef Fathy', url: 'https://x.com/youssef_fathy_demo', headline: 'Engineering Manager · hiring often', postsAbout: 'Frontend and React roles, Europe remote', createdAt: daysAgo(6) },
+    { id: 'demo-prof-7', platform: 'instagram', name: 'Design Jobs Cairo', url: 'https://instagram.com/design.jobs.cairo.demo', headline: 'Page · design & creative roles', postsAbout: 'UI/UX, motion and brand design openings', createdAt: daysAgo(7) },
+    { id: 'demo-prof-8', platform: 'linkedin', name: 'Salma Ibrahim', url: 'https://linkedin.com/in/salma-ibrahim-demo', headline: 'Recruiter · Data & AI', postsAbout: 'Data analyst, data engineer and ML roles', createdAt: daysAgo(8) },
 ]

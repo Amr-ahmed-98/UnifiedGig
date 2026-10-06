@@ -17,13 +17,13 @@ describe('ComingSoonModal', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: /got you/i })
+      screen.getByRole('link', { name: /explore it now/i })
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /don't show me again/i })
     ).toBeInTheDocument()
     expect(
-      screen.getByAltText(/what's new on unifiedgig/i)
+      screen.getByAltText(/unifiedgig learn/i)
     ).toBeInTheDocument()
   })
 
@@ -45,8 +45,9 @@ describe('ComingSoonModal', () => {
     const onClose = vi.fn()
     render(<ComingSoonModal initialDelayMs={0} onClose={onClose} />)
 
-    const gotYouBtn = await screen.findByRole('button', { name: /got you/i })
-    fireEvent.click(gotYouBtn)
+    // The "Explore it now" link calls handleGotYou (sets session flag and closes)
+    const exploreLink = await screen.findByRole('link', { name: /explore it now/i })
+    fireEvent.click(exploreLink)
 
     expect(sessionStorage.getItem(COMING_SOON_SESSION_KEY)).toBe('true')
     expect(localStorage.getItem(COMING_SOON_PERMANENT_KEY)).toBeNull()

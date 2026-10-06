@@ -12,6 +12,7 @@ import {
   PlayCircle,
   type LucideIcon,
 } from 'lucide-react'
+import { readableTint } from '@/lib/utils'
 import { hostOf, materialTypeMeta, sharedAgoLabel, type LearningMaterial, type MaterialType } from '@/types/material'
 
 export const materialTypeIcons: Record<MaterialType, LucideIcon> = {
@@ -40,14 +41,14 @@ function MaterialCardImpl({ material, index }: { material: LearningMaterial; ind
     >
       <span
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
-        style={{ background: `${meta.color}22`, color: meta.color }}
+        style={{ background: `${meta.color}22`, color: readableTint(meta.color) }}
       >
         <Icon className="h-5 w-5" />
       </span>
 
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-x-2 font-[var(--font-mono)] text-[11px]">
-          <span className="font-semibold" style={{ color: meta.color }}>
+          <span className="font-semibold" style={{ color: readableTint(meta.color) }}>
             {meta.label}
           </span>
           <span className="truncate text-fg/60">· {hostOf(material.url)}</span>

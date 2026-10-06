@@ -82,3 +82,16 @@ model LearningMaterial {
   @@index([field, createdAt])
   @@index([type])
 }
+
+model FollowProfile {
+  id         String   @id @default(cuid())
+  platform   String // "linkedin" | "facebook" | "x" | "instagram" | "telegram" | "other"
+  name       String
+  url        String   @unique // normalized: no hash, no www., no trailing slash
+  headline   String? // e.g. "Senior Tech Recruiter · Fintech"
+  postsAbout String? // e.g. "Remote frontend roles"
+  createdAt  DateTime @default(now())
+
+  @@index([platform])
+  @@index([createdAt])
+}

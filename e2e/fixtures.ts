@@ -3,6 +3,7 @@ import type { Job } from '../src/types/job'
 import type { FreelanceProject } from '../src/types/freelance'
 import type { SocialJobPost } from '../src/types/socialJob'
 import type { LearningMaterial } from '../src/types/material'
+import type { FollowProfile } from '../src/types/profile'
 
 export const mockJobs: Job[] = [
     {
@@ -318,5 +319,96 @@ export async function mockMaterialsApi(page: Page, options: MaterialsApiOptions 
                 counts: { fields: count(store, 'field'), types: count(inField, 'type') },
             },
         })
+    })
+}
+
+// ---------------------------------------------------------------------------
+// People to follow
+// ---------------------------------------------------------------------------
+
+const profDaysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
+
+export const mockProfiles: FollowProfile[] = [
+    { id: 'prof-1', platform: 'linkedin', name: 'Mariam Adel', url: 'https://linkedin.com/in/mariam-adel', headline: 'Senior Tech Recruiter · Fintech', postsAbout: 'Backend, mobile and QA roles in Cairo and remote', createdAt: profDaysAgo(1) },
+    { id: 'prof-2', platform: 'linkedin', name: 'Omar Khaled', url: 'https://linkedin.com/in/omar-khaled', headline: 'Talent Acquisition Lead · Telecom', postsAbout: 'Network engineers, NOC and cloud support', createdAt: profDaysAgo(2) },
+    { id: 'prof-3', platform: 'facebook', name: 'Egypt Remote Jobs', url: 'https://facebook.com/groups/egypt-remote-jobs', headline: 'Community group · 120k members', postsAbout: 'Daily remote openings for MENA candidates', createdAt: profDaysAgo(3) },
+    { id: 'prof-4', platform: 'linkedin', name: 'Nour Hassan', url: 'https://linkedin.com/in/nour-hassan', headline: 'HR Business Partner · E-commerce', postsAbout: 'Internships and graduate programmes', createdAt: profDaysAgo(4) },
+    { id: 'prof-5', platform: 'telegram', name: 'Freelance Devs MENA', url: 'https://t.me/freelance_devs_mena', headline: 'Channel · project leads & gigs', postsAbout: 'Short freelance web and app projects', createdAt: profDaysAgo(5) },
+    { id: 'prof-6', platform: 'x', name: 'Youssef Fathy', url: 'https://x.com/youssef_fathy', headline: 'Engineering Manager · hiring often', postsAbout: 'Frontend and React roles, Europe remote', createdAt: profDaysAgo(6) },
+    { id: 'prof-7', platform: 'instagram', name: 'Design Jobs Cairo', url: 'https://instagram.com/design.jobs.cairo', headline: 'Page · design & creative roles', postsAbout: 'UI/UX, motion and brand design openings', createdAt: profDaysAgo(7) },
+    { id: 'prof-8', platform: 'linkedin', name: 'Salma Ibrahim', url: 'https://linkedin.com/in/salma-ibrahim', headline: 'Recruiter · Data & AI', postsAbout: 'Data analyst, data engineer and ML roles', createdAt: profDaysAgo(8) },
+]
+
+interface ProfilesApiOptions {
+    profiles?: FollowProfile[]
+    /** When set, every POST /api/profiles fails with this status + message */
+    failPost?: { status: number; error: string }
+}
+
+/** Mirrors the server's dedup key: no hash, no "www.", no trailing slash. */
+function normalizeUrl(raw: string) {
+    try {
+        const u = new URL(raw.trim())
+        return `${u.protocol}//${u.host.replace(/^www\./, '')}${u.pathname.replace(/\/+$/, '')}${u.search}`
+    } catch {
+        return raw.trim()
+    }
+}
+
+/**
+ * Stateful mock of /api/profiles: GET filters/paginates and returns unfiltered
+ * per-platform counts like the real route; POST rejects duplicate links with 409
+ * and otherwise prepends the new profile so add-then-refetch works end to end.
+ */
+export async function mockProfilesApi(page: Page, options: ProfilesApiOptions = {}) {
+    const store: FollowProfile[] = [...(options.profiles ?? mockProfiles)]
+
+    await page.route('**/api/profiles**', async (route) => {
+        const request = route.request()
+
+        if (request.method() === 'POST') {
+            if (options.failPost) {
+                await route.fulfill({ status: options.failPost.status, json: { error: options.failPost.error } })
+                return
+            }
+            const body = request.postDataJSON() as Omit<FollowProfile, 'id' | 'createdAt'>
+            const url = normalizeUrl(body.url)
+            if (store.some((p) => p.url === url)) {
+                await route.fulfill({ status: 409, json: { error: 'That profile is already listed' } })
+                return
+            }
+            const profile: FollowProfile = {
+                ...body,
+                url,
+                headline: body.headline ?? null,
+                postsAbout: body.postsAbout ?? null,
+                id: `prof-new-${store.length + 1}`,
+                createdAt: new Date().toISOString(),
+            }
+            store.unshift(profile)
+            await route.fulfill({ status: 201, json: { profile } })
+            return
+        }
+
+        const sp = new URL(request.url()).searchParams
+        const q = sp.get('q')?.toLowerCase()
+        const platforms = (sp.get('platform') ?? '').split(',').filter(Boolean)
+        const skip = Number(sp.get('skip') ?? '0')
+        const take = Number(sp.get('take') ?? '24')
+
+        const matched = store
+            .filter((p) => platforms.length === 0 || platforms.includes(p.platform))
+            .filter(
+                (p) =>
+                    !q ||
+                    p.name.toLowerCase().includes(q) ||
+                    (p.headline ?? '').toLowerCase().includes(q) ||
+                    (p.postsAbout ?? '').toLowerCase().includes(q)
+            )
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+        const counts = store.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.platform]: (acc[p.platform] ?? 0) + 1 }), {})
+
+        await route.fulfill({ json: { profiles: matched.slice(skip, skip + take), total: matched.length, counts } })
     })
 }

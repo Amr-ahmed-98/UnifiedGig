@@ -53,6 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         { url: `${SITE_URL}/freelance`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
         { url: `${SITE_URL}/social-jobs`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
         { url: `${SITE_URL}/materials`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
+        { url: `${SITE_URL}/people`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
         ...learningFields.map((f) => ({ url: `${SITE_URL}/materials/${f.slug}`, lastModified: now, changeFrequency: "daily" as const, priority: 0.6 })),
         ...(await listingEntries()),
     ];
