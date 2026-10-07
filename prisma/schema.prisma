@@ -95,3 +95,15 @@ model FollowProfile {
   @@index([platform])
   @@index([createdAt])
 }
+
+model Prompt {
+  id        String   @id @default(cuid())
+  category  String // "programming" | "images" | "video" | "writing" | "career"
+  title     String
+  body      String // the prompt text; [brackets] mark parts people fill in
+  tools     String[] // optional "works with" tags, e.g. ["ChatGPT", "Claude"]
+  createdAt DateTime @default(now())
+
+  @@index([category, createdAt])
+  @@index([createdAt])
+}

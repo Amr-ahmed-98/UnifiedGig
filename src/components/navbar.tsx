@@ -13,6 +13,7 @@ const links = [
   { to: '/freelance', label: 'Freelance' },
   { to: '/social-jobs', label: 'Social' },
   { to: '/materials', label: 'Learn' },
+  { to: '/prompts', label: 'Prompts' },
   { to: '/people', label: 'People' },
 ]
 
@@ -22,7 +23,7 @@ export function NavBar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-edge/10 bg-canvas/70 backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-8">
+      <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" data-cursor-hover className="group flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime text-ink transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-110">
             <Zap className="h-5 w-5" strokeWidth={2.75} />
@@ -35,7 +36,7 @@ export function NavBar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-0.5 md:flex lg:gap-1">
           {links.map((l) => {
             const active = l.to === '/' ? pathname === '/' : pathname === l.to || pathname.startsWith(l.to + '/')
             return (
@@ -43,7 +44,7 @@ export function NavBar() {
                 key={l.to}
                 href={l.to}
                 data-cursor-hover
-                className={`relative rounded-full px-3 py-2 text-sm lg:px-4 font-semibold transition-colors ${active ? 'text-ink' : 'text-fg/70 hover:text-fg'}`}
+                className={`relative rounded-full px-2 py-1.5 text-xs md:px-2 md:text-xs lg:px-3.5 lg:py-2 lg:text-sm font-semibold transition-colors ${active ? 'text-ink' : 'text-fg/70 hover:text-fg'}`}
               >
                 {active && (
                   <motion.span
@@ -56,7 +57,7 @@ export function NavBar() {
               </Link>
             )
           })}
-          <div className="ml-3">
+          <div className="ml-1.5 lg:ml-3">
             <ThemeToggle />
           </div>
         </div>

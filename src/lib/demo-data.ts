@@ -3,6 +3,8 @@ import type { FreelanceProject } from '@/types/freelance'
 import type { SocialJobPost } from '@/types/socialJob'
 import type { LearningMaterial } from '@/types/material'
 import type { FollowProfile } from '@/types/profile'
+import type { Prompt } from '@/types/prompt'
+import { STARTER_PROMPTS } from '@/data/starter-prompts'
 
 /**
  * Bundled demo listings.
@@ -284,3 +286,10 @@ export const DEMO_PROFILES: FollowProfile[] = [
     { id: 'demo-prof-7', platform: 'instagram', name: 'Design Jobs Cairo', url: 'https://instagram.com/design.jobs.cairo.demo', headline: 'Page · design & creative roles', postsAbout: 'UI/UX, motion and brand design openings', createdAt: daysAgo(7) },
     { id: 'demo-prof-8', platform: 'linkedin', name: 'Salma Ibrahim', url: 'https://linkedin.com/in/salma-ibrahim-demo', headline: 'Recruiter · Data & AI', postsAbout: 'Data analyst, data engineer and ML roles', createdAt: daysAgo(8) },
 ]
+
+
+export const DEMO_PROMPTS: Prompt[] = STARTER_PROMPTS.map((p, i) => ({
+    id: `demo-prompt-${i + 1}`,
+    ...p,
+    createdAt: daysAgo(i),
+}))

@@ -4,6 +4,7 @@ import type { FreelanceProject } from '../src/types/freelance'
 import type { SocialJobPost } from '../src/types/socialJob'
 import type { LearningMaterial } from '../src/types/material'
 import type { FollowProfile } from '../src/types/profile'
+import { parseTools, matchKnownTools, type Prompt } from '../src/types/prompt'
 
 export const mockJobs: Job[] = [
     {
@@ -410,5 +411,90 @@ export async function mockProfilesApi(page: Page, options: ProfilesApiOptions = 
         const counts = store.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.platform]: (acc[p.platform] ?? 0) + 1 }), {})
 
         await route.fulfill({ json: { profiles: matched.slice(skip, skip + take), total: matched.length, counts } })
+    })
+}
+
+// ---------------------------------------------------------------------------
+// AI prompt library
+// ---------------------------------------------------------------------------
+
+const promptHoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString()
+
+export const mockPrompts: Prompt[] = [
+    { id: 'prompt-1', category: 'programming', title: 'Senior code review', body: 'Act as a senior [language] engineer. Review the code below for bugs, security issues and readability.\n\n[paste code]', tools: ['ChatGPT', 'Claude', 'Gemini'], createdAt: promptHoursAgo(1) },
+    { id: 'prompt-2', category: 'programming', title: "Explain an error like I'm new", body: 'I got this error while working with [framework/tool]: [paste error]. Explain what it means and how to fix it.', tools: ['ChatGPT', 'Claude'], createdAt: promptHoursAgo(2) },
+    { id: 'prompt-3', category: 'images', title: 'Professional headshot', body: 'Professional LinkedIn headshot of a [age] [gender] [profession], soft natural window light, neutral background.', tools: ['Midjourney', 'DALL·E', 'Gemini'], createdAt: promptHoursAgo(3) },
+    { id: 'prompt-4', category: 'video', title: 'Cinematic B-roll shot', body: 'A slow cinematic dolly-in shot of [subject] in [location] at golden hour. Duration 8 seconds.', tools: ['Sora', 'Runway', 'Veo'], createdAt: promptHoursAgo(4) },
+    { id: 'prompt-5', category: 'career', title: 'Tailor my CV to a job post', body: 'Here is a job description: [paste job post]. Here is my CV: [paste CV]. Rewrite my bullet points to match the role.', tools: ['ChatGPT', 'Claude', 'Gemini'], createdAt: promptHoursAgo(5) },
+    { id: 'prompt-6', category: 'writing', title: 'Cold message to a recruiter', body: 'Write a short LinkedIn message (under 80 words) to a recruiter at [company] about the [role] opening.', tools: ['ChatGPT', 'Claude'], createdAt: promptHoursAgo(6) },
+]
+
+/** A prompt with no "Works with" tools — the field is optional. */
+export const mockPromptWithoutTools: Prompt = {
+    id: 'prompt-7',
+    category: 'writing',
+    title: 'Tone-neutral rewrite',
+    body: 'Rewrite the text below in a neutral, professional tone: [paste text]',
+    tools: [],
+    createdAt: promptHoursAgo(7),
+}
+
+interface PromptsApiOptions {
+    prompts?: Prompt[]
+    /** When set, POST /api/prompts fails with this status + message */
+    failPost?: { status: number; error: string }
+}
+
+/**
+ * Stateful mock of /api/prompts: GET filters/paginates and returns whole-library
+ * category counts like the real route (searching tool names too); POST normalises
+ * tools and prepends the new prompt so add-then-refetch works end to end.
+ */
+export async function mockPromptsApi(page: Page, options: PromptsApiOptions = {}) {
+    const store: Prompt[] = [...(options.prompts ?? mockPrompts)]
+
+    await page.route('**/api/prompts**', async (route) => {
+        const request = route.request()
+
+        if (request.method() === 'POST') {
+            if (options.failPost) {
+                await route.fulfill({ status: options.failPost.status, json: { error: options.failPost.error } })
+                return
+            }
+            const body = request.postDataJSON() as { category: Prompt['category']; title: string; body: string; tools?: unknown }
+            const prompt: Prompt = {
+                category: body.category,
+                title: body.title,
+                body: body.body,
+                tools: parseTools(body.tools),
+                id: `prompt-new-${store.length + 1}`,
+                createdAt: new Date().toISOString(),
+            }
+            store.unshift(prompt)
+            await route.fulfill({ status: 201, json: { prompt } })
+            return
+        }
+
+        const sp = new URL(request.url()).searchParams
+        const q = sp.get('q')?.toLowerCase()
+        const categories = (sp.get('category') ?? '').split(',').filter(Boolean)
+        const skip = Number(sp.get('skip') ?? '0')
+        const take = Number(sp.get('take') ?? '24')
+        const toolHits = q ? matchKnownTools(q) : []
+
+        const matched = store
+            .filter((p) => categories.length === 0 || categories.includes(p.category))
+            .filter(
+                (p) =>
+                    !q ||
+                    p.title.toLowerCase().includes(q) ||
+                    p.body.toLowerCase().includes(q) ||
+                    p.tools.some((t) => toolHits.includes(t) || t.toLowerCase().includes(q))
+            )
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+        const counts = store.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.category]: (acc[p.category] ?? 0) + 1 }), {})
+
+        await route.fulfill({ json: { prompts: matched.slice(skip, skip + take), total: matched.length, counts: { categories: counts } } })
     })
 }
